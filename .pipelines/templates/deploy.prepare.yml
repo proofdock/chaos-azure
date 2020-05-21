@@ -1,0 +1,16 @@
+steps:
+  - checkout: self
+    persistCredentials: true
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.8'
+      addToPath: true
+      architecture: 'x64'
+  - script: |
+      pip install bump2version
+      python -m pip install --user --upgrade setuptools wheel twine
+      python -m pip install -r requirements.txt
+      git config --global user.email "support@proofdock.io"
+      git config --global user.name "proofdock-support"
+      git remote set-url origin https://proofdock-support:$(GITHUB_TOKEN)@github.com/proofdock/chaos-azure.git
+    displayName: 'Prepare deployment'

@@ -1,0 +1,57 @@
+trigger: none
+pr: none
+
+stages:
+  - stage: verify
+    jobs:
+      - template: templates/verify.yml  # Verify Python 3.5
+        parameters:
+          version: 3.5
+          display_version: 3_5
+      - template: templates/verify.yml  # Verify Python 3.6
+        parameters:
+          version: 3.6
+          display_version: 3_6
+      - template: templates/verify.yml  # Verify Python 3.7
+        parameters:
+          version: 3.7
+          display_version: 3_7
+      - template: templates/verify.yml  # Verify Python 3.8
+        parameters:
+          version: 3.8
+          display_version: 3_8
+  - stage: deploy
+    displayName: deploy:production
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
+    dependsOn: verify
+    jobs:
+      - deployment: production
+        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
+        pool:
+          vmImage: "ubuntu-latest"
+        environment: production
+        variables:
+          - group: shared
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - template: templates/deploy.prepare.yml
+                - script: bump2version --tag release
+                  displayName: 'Tag relase version'
+                - script: python setup.py sdist bdist_wheel
+                  displayName: 'Generate package'
+                - task: TwineAuthenticate@1
+                  displayName: 'Authenticate'
+                  inputs:
+                    pythonUploadServiceConnection: 'PyPI - production'
+                - script: python -m twine upload --repository proofdock-chaos --config-file $(PYPIRC_PATH) dist/*
+                  displayName: 'Upload package'
+                - script: bump2version patch
+                  displayName: 'Bump patch version after release'
+                - template: templates/deploy.commit.yml
+                - task: PublishPipelineArtifact@1
+                  inputs:
+                    targetPath: "dist"
+                    artifactName: "chaos-dock-azure-src"
