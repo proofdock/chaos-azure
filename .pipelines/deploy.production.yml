@@ -54,4 +54,4 @@ stages:
                 - task: PublishPipelineArtifact@1
                   inputs:
                     targetPath: "dist"
-                    artifactName: "chaos-dock-azure-src"
+                    artifactName: "chaos-azure-src"

@@ -1,6 +1,6 @@
 # Chaos Toolkit Extension for Azure
 
-[![Build Status](https://dev.azure.com/proofdockio/chaos/_apis/build/status/chaos-dock-azure/proofdock.chaos-dock-azure.production?branchName=master)](https://dev.azure.com/proofdockio/chaos/_build/latest?definitionId=50&branchName=master)
+[![Build Status](https://dev.azure.com/proofdockio/chaos/_apis/build/status/chaos-azure/chaos-azure%20-%20production?branchName=master)](https://dev.azure.com/proofdockio/chaos/_build/latest?definitionId=60&branchName=master)
 [![Python versions](https://img.shields.io/pypi/pyversions/proofdock-chaos-azure.svg)](https://www.python.org/)
 
 This project is a collection of [actions][activities] and [probes][activities], gathered as an
