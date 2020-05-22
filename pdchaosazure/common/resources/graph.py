@@ -2,24 +2,23 @@ from datetime import datetime
 from typing import List
 
 from azure.mgmt.resourcegraph.models \
-    import QueryRequest, ErrorResponseException
+    import ErrorResponseException
 from chaoslib.exceptions import InterruptExecution
 from chaoslib.types import Secrets, Configuration
 
 from pdchaosazure import init_resource_graph_client
-from pdchaosazure.common.config import load_configuration
+from pdchaosazure.common.resources import query
 
 
-def fetch_resources(input_query: str, resource_type: str,
+def fetch_resources(user_query: str, resource_type: str,
                     secrets: Secrets, configuration: Configuration):
     # prepare query
-    _query = __query_from(resource_type, input_query)
-    _query_request = __query_request_from(_query, configuration)
+    query_request = query.create_request(resource_type, user_query, configuration)
 
     # prepare resource graph client
     try:
         client = init_resource_graph_client(secrets)
-        resources = client.resources(_query_request)
+        resources = client.resources(query_request)
     except ErrorResponseException as e:
         msg = e.inner_exception.error.code
         if e.inner_exception.error.details:
@@ -30,25 +29,6 @@ def fetch_resources(input_query: str, resource_type: str,
     # prepare results
     results = __to_dicts(resources.data, client.api_version)
     return results
-
-
-def __query_request_from(query, experiment_configuration: Configuration):
-    configuration = load_configuration(experiment_configuration)
-    result = QueryRequest(
-        query=query,
-        subscriptions=[configuration.get('subscription_id')]
-    )
-    return result
-
-
-def __query_from(resource_type, query) -> str:
-    where = "where type=~'{}'".format(resource_type)
-    if not query:
-        result = "{}".format(where)
-    else:
-        result = "{}| {}".format(where, query)
-
-    return "Resources | {}".format(result)
 
 
 def __to_dicts(table, version) -> List[dict]:

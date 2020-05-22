@@ -58,7 +58,7 @@ def run(resource_group: str, compute: dict, timeout: int, parameters: dict,
             .format(compute.get('type'))
         raise InterruptExecution(msg)
 
-    result = poller.result(timeout)  # Blocking till executed
+    result = poller.result()  # Blocking till executed
     if result and result.value:
         logger.debug(result.value[0].message)  # stdout/stderr
     else:
