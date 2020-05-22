@@ -1,4 +1,3 @@
-
 import io
 import json
 import os
@@ -101,20 +100,31 @@ def load_secrets(experiment_secrets: Secrets):
     return {}
 
 
-def load_configuration(experiment_configuration: Configuration):
+def load_timeout(experiment_configuration: Configuration) -> int:
+    """ Defaults to 600 seconds if no timeout is given. """
+    result = 600
+
+    if experiment_configuration:
+        result = experiment_configuration.get("timeout", result)
+
+    return result
+
+
+def load_subscription_id(experiment_configuration: Configuration):
     subscription_id = None
-    # 1: lookup for configuration in experiment config file
+
+    # 1: lookup in experiment definition
     if experiment_configuration:
         subscription_id = experiment_configuration.get("azure_subscription_id")
         # check legacy subscription location
         if not subscription_id:
-            subscription_id = experiment_configuration\
+            subscription_id = experiment_configuration \
                 .get('azure', {}).get('subscription_id')
 
     if subscription_id:
         return {'subscription_id': subscription_id}
 
-    # 2: lookup for configuration in azure auth file
+    # 2: lookup in Azure auth file
     az_auth_file = _load_azure_auth_file()
     if az_auth_file:
         return {'subscription_id': az_auth_file.get('subscriptionId')}

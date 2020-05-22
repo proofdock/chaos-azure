@@ -5,7 +5,7 @@ from chaoslib.types import Configuration, Secrets
 from logzero import logger
 
 from pdchaosazure import init_client
-from pdchaosazure.common import cleanse
+from pdchaosazure.common import cleanse, config
 from pdchaosazure.common.compute import command
 from pdchaosazure.machine.constants import RES_TYPE_VM
 from pdchaosazure.common.resources.graph import fetch_resources
@@ -53,12 +53,11 @@ def delete_machines(filter: str = None,
     machines = __fetch_machines(filter, configuration, secrets)
     client = __compute_mgmt_client(secrets, configuration)
     machine_records = Records()
-    for m in machines:
-        group = m['resourceGroup']
-        name = m['name']
-        logger.debug("Deleting machine: {}".format(name))
-        client.virtual_machines.delete(group, name)
-        machine_records.add(cleanse.machine(m))
+    for machine in machines:
+        logger.debug("Deleting machine: {}".format(machine['name']))
+        poller = client.virtual_machines.delete(machine['resourceGroup'], machine['name'])
+        poller.result(config.load_timeout(configuration))
+        machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -89,20 +88,17 @@ def stop_machines(filter: str = None,
     >>> stop_machines("where resourceGroup=='mygroup' | sample 2", c, s)
     Stop two machines at random from the group 'mygroup'
     """
-    logger.debug(
-        "Start stop_machines: "
-        "configuration='{}', filter='{}'".format(configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop_machines.__name__, configuration, filter))
 
     machines = __fetch_machines(filter, configuration, secrets)
     client = __compute_mgmt_client(secrets, configuration)
 
     machine_records = Records()
-    for m in machines:
-        group = m['resourceGroup']
-        name = m['name']
-        logger.debug("Stopping machine: {}".format(name))
-        client.virtual_machines.power_off(group, name)
-        machine_records.add(cleanse.machine(m))
+    for machine in machines:
+        logger.debug("Stopping machine '{}'".format(machine['name']))
+        poller = client.virtual_machines.power_off(machine['resourceGroup'], machine['name'])
+        poller.result(config.load_timeout(configuration))
+        machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -133,19 +129,17 @@ def restart_machines(filter: str = None,
     >>> restart_machines("where resourceGroup=='rg' | sample 2", c, s)
     Restart two machines at random from the group 'rg'
     """
-    logger.debug(
-        "Start restart_machines: "
-        "configuration='{}', filter='{}'".format(configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(
+        restart_machines.__name__, configuration, filter))
 
     machines = __fetch_machines(filter, configuration, secrets)
     client = __compute_mgmt_client(secrets, configuration)
     machine_records = Records()
-    for m in machines:
-        group = m['resourceGroup']
-        name = m['name']
-        logger.debug("Restarting machine: {}".format(name))
-        client.virtual_machines.restart(group, name)
-        machine_records.add(cleanse.machine(m))
+    for machine in machines:
+        logger.debug("Restarting machine: {}".format(machine['name']))
+        poller = client.virtual_machines.restart(machine['resourceGroup'], machine['name'])
+        poller.result(config.load_timeout(configuration))
+        machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -177,9 +171,7 @@ def start_machines(filter: str = None,
     Start two stopped machines at random from the group 'rg'
     """
 
-    logger.debug(
-        "Start start_machines: configuration='{}', filter='{}'".format(
-            configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(start_machines.__name__, configuration, filter))
 
     machines = __fetch_machines(filter, configuration, secrets)
     client = __compute_mgmt_client(secrets, configuration)
@@ -187,9 +179,9 @@ def start_machines(filter: str = None,
 
     machine_records = Records()
     for machine in stopped_machines:
-        logger.debug("Starting machine: {}".format(machine['name']))
-        client.virtual_machines.start(machine['resourceGroup'],
-                                      machine['name'])
+        logger.debug("Starting machine '{}'".format(machine['name']))
+        poller = client.virtual_machines.start(machine['resourceGroup'], machine['name'])
+        poller.result(config.load_timeout(configuration))
 
         machine_records.add(cleanse.machine(machine))
 
@@ -198,7 +190,6 @@ def start_machines(filter: str = None,
 
 def stress_cpu(filter: str = None,
                duration: int = 120,
-               timeout: int = 60,
                configuration: Configuration = None,
                secrets: Secrets = None):
     """
@@ -212,10 +203,6 @@ def stress_cpu(filter: str = None,
     duration : int, optional
         Duration of the stress test (in seconds) that generates high CPU usage.
         Defaults to 120 seconds.
-    timeout : int
-        Additional wait time (in seconds) for stress operation to be completed.
-        Getting and sending data from/to Azure may take some time so it's not
-        recommended to set this value to less than 30s. Defaults to 60 seconds.
 
     Examples
     --------
@@ -234,17 +221,14 @@ def stress_cpu(filter: str = None,
     Stress two machines at random from the group 'rg'
     """
 
-    msg = "Starting stress_cpu:" \
-          " configuration='{}', filter='{}', duration='{}', timeout='{}'" \
-        .format(configuration, filter, duration, timeout)
-    logger.debug(msg)
+    logger.debug(
+        "Starting stress_cpu: configuration='{}', filter='{}', duration='{}'".format(configuration, filter, duration))
 
     machines = __fetch_machines(filter, configuration, secrets)
 
     machine_records = Records()
     for machine in machines:
-        command_id, script_content = command \
-            .prepare(machine, 'cpu_stress_test')
+        command_id, script_content = command.prepare(machine, 'cpu_stress_test')
 
         parameters = {
             'command_id': command_id,
@@ -254,11 +238,8 @@ def stress_cpu(filter: str = None,
             ]
         }
 
-        logger.debug("Stressing CPU of machine: '{}'".format(machine['name']))
-        _timeout = duration + timeout
-        command.run(
-            machine['resourceGroup'], machine, _timeout, parameters,
-            secrets, configuration)
+        logger.debug("Executing operation '{}' on machine: '{}'".format(stress_cpu.__name__, machine['name']))
+        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
@@ -266,7 +247,6 @@ def stress_cpu(filter: str = None,
 
 def fill_disk(filter: str = None,
               duration: int = 120,
-              timeout: int = 60,
               size: int = 1000,
               path: str = None,
               configuration: Configuration = None,
@@ -281,11 +261,6 @@ def fill_disk(filter: str = None,
         the subscription will be selected as potential chaos candidates.
     duration : int, optional
         Lifetime of the file created. Defaults to 120 seconds.
-    timeout : int
-        Additional wait time (in seconds)
-        for filling operation to be completed.
-        Getting and sending data from/to Azure may take some time so it's not
-        recommended to set this value to less than 30s. Defaults to 60 seconds.
     size : int
         Size of the file created on the disk. Defaults to 1GB.
     path : str, optional
@@ -310,10 +285,8 @@ def fill_disk(filter: str = None,
     Fill two machines at random from the group 'rg'
     """
 
-    msg = "Starting fill_disk: configuration='{}', filter='{}'," \
-          " duration='{}', size='{}', path='{}', timeout='{}'" \
-        .format(configuration, filter, duration, size, path, timeout)
-    logger.debug(msg)
+    logger.debug("Starting fill_disk: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
+        configuration, filter, duration, size, path))
 
     machines = __fetch_machines(filter, configuration, secrets)
 
@@ -332,11 +305,8 @@ def fill_disk(filter: str = None,
             ]
         }
 
-        logger.debug("Filling disk of machine: {}".format(machine['name']))
-        _timeout = duration + timeout
-        command.run(
-            machine['resourceGroup'], machine, _timeout, parameters,
-            secrets, configuration)
+        logger.debug("Executing operation '{}' on machine: '{}'".format(fill_disk.__name__, machine['name']))
+        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
@@ -346,7 +316,6 @@ def network_latency(filter: str = None,
                     duration: int = 60,
                     delay: int = 200,
                     jitter: int = 50,
-                    timeout: int = 60,
                     configuration: Configuration = None,
                     secrets: Secrets = None):
     """
@@ -359,10 +328,6 @@ def network_latency(filter: str = None,
         the subscription will be selected as potential chaos candidates.
     duration : int, optional
         How long the latency lasts. Defaults to 60 seconds.
-    timeout : int
-        Additional wait time (in seconds) for filling operation to be completed
-        Getting and sending data from/to Azure may take some time so it's not
-        recommended to set this value to less than 30s. Defaults to 60 seconds.
     delay : int
         Added delay in ms. Defaults to 200.
     jitter : int
@@ -389,15 +354,14 @@ def network_latency(filter: str = None,
     """
 
     logger.debug(
-        "Start network_latency: configuration='{}', filter='{}'".format(
-            configuration, filter))
+        "Starting network_latency: configuration='{}', filter='{}', duration='{}', delay='{}', jitter='{}'".format(
+            configuration, filter, duration, delay, jitter))
 
     machines = __fetch_machines(filter, configuration, secrets)
 
     machine_records = Records()
     for machine in machines:
-        command_id, script_content = command \
-            .prepare(machine, 'network_latency')
+        command_id, script_content = command.prepare(machine, 'network_latency')
 
         logger.debug("Script content: {}".format(script_content))
         parameters = {
@@ -410,12 +374,8 @@ def network_latency(filter: str = None,
             ]
         }
 
-        logger.debug("Increasing the latency of machine: {}"
-                     .format(machine['name']))
-        _timeout = duration + timeout
-        command.run(
-            machine['resourceGroup'], machine, _timeout, parameters,
-            secrets, configuration)
+        logger.debug("Executing operation '{}' on machine: '{}'".format(network_latency.__name__, machine['name']))
+        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
@@ -423,7 +383,6 @@ def network_latency(filter: str = None,
 
 def burn_io(filter: str = None,
             duration: int = 60,
-            timeout: int = 60,
             configuration: Configuration = None,
             secrets: Secrets = None):
     """
@@ -436,10 +395,6 @@ def burn_io(filter: str = None,
         the subscription will be selected as potential chaos candidates.
     duration : int, optional
         How long the burn lasts. Defaults to 60 seconds.
-    timeout : int
-        Additional wait time (in seconds) for filling operation to be completed
-        Getting and sending data from/to Azure may take some time so it's not
-        recommended to set this value to less than 30s. Defaults to 60 seconds.
 
 
     Examples
@@ -461,9 +416,8 @@ def burn_io(filter: str = None,
     the group 'rg'
     """
 
-    msg = "Starting burn_io: configuration='{}', filter='{}', duration='{}'," \
-          " timeout='{}'".format(configuration, filter, duration, timeout)
-    logger.debug(msg)
+    logger.debug(
+        "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(configuration, filter, duration))
 
     machines = __fetch_machines(filter, configuration, secrets)
 
@@ -479,11 +433,8 @@ def burn_io(filter: str = None,
             ]
         }
 
-        logger.debug("Burning IO of machine: '{}'".format(machine['name']))
-        _timeout = duration + timeout
-        command.run(
-            machine['resourceGroup'], machine, _timeout, parameters,
-            secrets, configuration)
+        logger.debug("Executing operation '{}' on machine: '{}'".format(burn_io.__name__, machine['name']))
+        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
@@ -492,8 +443,6 @@ def burn_io(filter: str = None,
 ###############################################################################
 # Private helper functions
 ###############################################################################
-
-
 def __fetch_all_stopped_machines(client, machines) -> []:
     stopped_machines = []
     for m in machines:
@@ -513,10 +462,7 @@ def __fetch_machines(filter, configuration, secrets) -> []:
     if not machines:
         logger.warning("No virtual machines found")
         raise FailedActivity("No virtual machines found")
-    else:
-        logger.debug(
-            "Fetched virtual machines: {}".format(
-                [x['name'] for x in machines]))
+
     return machines
 
 

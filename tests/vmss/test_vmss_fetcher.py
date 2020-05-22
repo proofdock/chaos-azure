@@ -4,7 +4,7 @@ import pytest
 from chaoslib.exceptions import FailedActivity
 
 import pdchaosazure
-from pdchaosazure.vmss.actions import delete_vmss
+from pdchaosazure.vmss.actions import delete_instance
 from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_instances
 from tests.data import vmss_provider
 
@@ -30,7 +30,7 @@ def test_empty_fetch_vmss(mocked_fetch_vmss):
         assert "No VMSS" in str(x.value)
 
 
-@patch.object(pdchaosazure.vmss.fetcher, '__fetch_vmss_instances', autospec=True)
+@patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
 def test_succesful_fetch_instances_without_instance_criteria(mocked_fetch_instances):
     instance = vmss_provider.provide_instance()
     instances = [instance]
@@ -45,7 +45,7 @@ def test_succesful_fetch_instances_without_instance_criteria(mocked_fetch_instan
     assert result[0].get('instance_id') == '0'
 
 
-@patch.object(pdchaosazure.vmss.fetcher, '__fetch_vmss_instances', autospec=True)
+@patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
 def test_empty_fetch_instances_without_instance_criteria(mocked_fetch_instances):
     with pytest.raises(FailedActivity) as x:
         mocked_fetch_instances.return_value = []
@@ -56,7 +56,7 @@ def test_empty_fetch_instances_without_instance_criteria(mocked_fetch_instances)
         assert "No VMSS instances" in str(x.value)
 
 
-@patch.object(pdchaosazure.vmss.fetcher, '__fetch_vmss_instances', autospec=True)
+@patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
 def test_succesful_fetch_instances_with_instance_criteria_for_instance0(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()
@@ -78,7 +78,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0(mocked_f
     assert result[0].get('instance_id') == '0'
 
 
-@patch.object(pdchaosazure.vmss.fetcher, '__fetch_vmss_instances', autospec=True)
+@patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
 def test_succesful_fetch_instances_with_instance_criteria_for_instance0_instance_2(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()
@@ -105,7 +105,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0_instance
     assert result[1].get('instance_id') == '2'
 
 
-@patch.object(pdchaosazure.vmss.fetcher, '__fetch_vmss_instances', autospec=True)
+@patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
 def test_succesful_fetch_instances_with_instance_criteria_for_all_instances(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()
@@ -135,7 +135,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_all_instances(mock
     assert result[2].get('instance_id') == '2'
 
 
-@patch.object(pdchaosazure.vmss.fetcher, '__fetch_vmss_instances', autospec=True)
+@patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
 def test_empty_fetch_instances_with_instance_criteria(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()

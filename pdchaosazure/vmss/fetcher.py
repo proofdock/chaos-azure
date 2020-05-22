@@ -30,7 +30,7 @@ def instances_by_criteria(
         instance_criteria: Iterable[Mapping[str, any]] = None,
         secrets: Secrets = None) -> List[Dict[str, Any]]:
     result = []
-    instances = __fetch_vmss_instances(vmss_choice, configuration, secrets)
+    instances = fetch_all_vmss_instances(vmss_choice, configuration, secrets)
 
     for instance in instances:
         if __is_criteria_matched(instance, instance_criteria):
@@ -57,10 +57,7 @@ def fetch_vmss(filter, configuration, secrets) -> List[dict]:
     return vmss
 
 
-#############################################################################
-# Private helper functions
-#############################################################################
-def __fetch_vmss_instances(choice, configuration, secrets) -> List[Dict]:
+def fetch_all_vmss_instances(choice, configuration, secrets) -> List[Dict]:
     vmss_instances = []
     client = init_client(secrets, configuration)
     pages = client.virtual_machine_scale_set_vms.list(
@@ -79,11 +76,14 @@ def __fetch_vmss_instances(choice, configuration, secrets) -> List[Dict]:
     return results
 
 
+#############################################################################
+# Private helper functions
+#############################################################################
 def __random_instance_from(
         scale_set,
         configuration,
         secrets) -> Dict[str, Any]:
-    instances = __fetch_vmss_instances(
+    instances = fetch_all_vmss_instances(
         scale_set, configuration, secrets)
     if not instances:
         raise FailedActivity("No VMSS instances found")

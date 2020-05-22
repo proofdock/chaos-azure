@@ -13,7 +13,7 @@ from chaoslib.types import (Configuration, DiscoveredActivities, Discovery,
 from logzero import logger
 
 from pdchaosazure.auth import auth
-from pdchaosazure.common.config import load_configuration, load_secrets
+from pdchaosazure.common.config import load_subscription_id, load_secrets
 
 __all__ = [
     "__version__", "discover", "init_client", "init_resource_graph_client"
@@ -38,7 +38,7 @@ def init_client(
         experiment_configuration: Configuration) -> ComputeManagementClient:
 
     secrets = load_secrets(experiment_secrets)
-    configuration = load_configuration(experiment_configuration)
+    configuration = load_subscription_id(experiment_configuration)
     with auth(secrets) as authentication:
         base_url = secrets.get('cloud').endpoints.resource_manager
         client = ComputeManagementClient(

@@ -2,8 +2,10 @@ import os
 
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
+from msrestazure import azure_exceptions
 
 from pdchaosazure import init_client
+from pdchaosazure.common import config
 from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
 
@@ -39,31 +41,37 @@ def prepare(compute: dict, script: str):
         return command_id, script_content
 
 
-def run(resource_group: str, compute: dict, timeout: int, parameters: dict,
+def run(resource_group: str, compute: dict, duration: int, parameters: dict,
         secrets, configuration):
     client = init_client(secrets, configuration)
-
     compute_type = compute.get('type').lower()
-    if compute_type == RES_TYPE_VMSS_VM.lower():
-        poller = client.virtual_machine_scale_set_vms.run_command(
-            resource_group, compute['scale_set'],
-            compute['instance_id'], parameters)
 
-    elif compute_type == RES_TYPE_VM.lower():
-        poller = client.virtual_machines.run_command(
-            resource_group, compute['name'], parameters)
+    try:
+        if compute_type == RES_TYPE_VMSS_VM.lower():
+            poller = client.virtual_machine_scale_set_vms.run_command(
+                resource_group, compute['scale_set'], compute['instance_id'], parameters)
 
-    else:
-        msg = "Trying to run a command for the unknown resource type '{}'" \
-            .format(compute.get('type'))
-        raise InterruptExecution(msg)
+        elif compute_type == RES_TYPE_VM.lower():
+            poller = client.virtual_machines.run_command(
+                resource_group, compute['name'], parameters)
 
+        else:
+            msg = "Running a command for the unknown resource type '{}'" \
+                .format(compute.get('type'))
+            raise InterruptExecution(msg)
+
+    except azure_exceptions.CloudError as e:
+        msg = e.message
+        raise FailedActivity(msg)
+        logger.error(msg)
+
+    timeout = config.load_timeout(configuration) + duration
     result = poller.result(timeout)  # Blocking till executed
     if result and result.value:
         logger.debug(result.value[0].message)  # stdout/stderr
     else:
         raise FailedActivity("Operation did not finish properly."
-                             " You may consider increasing timeout setting.")
+                             " You may consider to increase the timeout in the experiment configuration.")
 
 
 #####################

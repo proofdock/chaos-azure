@@ -23,11 +23,10 @@ def describe_machines(filter: str = None,
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
     logger.debug(
-        "Start describe_machines: configuration='{}', filter='{}'".format(
-            configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(describe_machines.__name__, configuration, filter))
 
-    machines = fetch_resources(filter, RES_TYPE_VM, secrets, configuration)
-    return machines
+    result = fetch_resources(filter, RES_TYPE_VM, secrets, configuration)
+    return result
 
 
 def count_machines(filter: str = None,
@@ -45,8 +44,7 @@ def count_machines(filter: str = None,
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
     logger.debug(
-        "Start count_machines: configuration='{}', filter='{}'".format(
-            configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(count_machines.__name__, configuration, filter))
 
-    machines = fetch_resources(filter, RES_TYPE_VM, secrets, configuration)
-    return len(machines)
+    result = fetch_resources(filter, RES_TYPE_VM, secrets, configuration)
+    return len(result)
