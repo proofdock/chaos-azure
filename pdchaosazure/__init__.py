@@ -18,7 +18,7 @@ from pdchaosazure.common.config import load_configuration, load_secrets
 __all__ = [
     "__version__", "discover", "init_client", "init_resource_graph_client"
 ]
-__version__ = '0.8.12-dev0'
+__version__ = '0.8.12-dev1'
 
 
 def discover(discover_system: bool = True) -> Discovery:
