@@ -1,11 +1,12 @@
 import random
 from typing import Any, Dict, Iterable, Mapping, List
 
+from azure.mgmt.compute import ComputeManagementClient
 from chaoslib import Configuration, Secrets
 from chaoslib.exceptions import FailedActivity
 from logzero import logger
 
-from pdchaosazure import init_client
+from pdchaosazure import load_secrets, load_subscription_id, auth
 from pdchaosazure.common.resources.graph import fetch_resources
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS
 
@@ -59,7 +60,16 @@ def fetch_vmss(filter, configuration, secrets) -> List[dict]:
 
 def fetch_all_vmss_instances(choice, configuration, secrets) -> List[Dict]:
     vmss_instances = []
-    client = init_client(secrets, configuration)
+    secrets1 = load_secrets(secrets)
+    configuration1 = load_subscription_id(configuration)
+    with auth(secrets1) as authentication:
+        base_url = secrets1.get('cloud').endpoints.resource_manager
+        client1 = ComputeManagementClient(
+            credentials=authentication,
+            subscription_id=configuration1.get('subscription_id'),
+            base_url=base_url)
+
+        client = client1
     pages = client.virtual_machine_scale_set_vms.list(
         choice['resourceGroup'], choice['name'])
     first_page = pages.advance_page()

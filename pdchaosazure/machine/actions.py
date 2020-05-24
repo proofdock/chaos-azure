@@ -3,6 +3,7 @@
 from chaoslib.exceptions import FailedActivity
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
+from msrestazure import azure_exceptions
 
 from pdchaosazure import init_client
 from pdchaosazure.common import cleanse, config
@@ -55,7 +56,13 @@ def delete_machines(filter: str = None,
     machine_records = Records()
     for machine in machines:
         logger.debug("Deleting machine: {}".format(machine['name']))
-        poller = client.virtual_machines.delete(machine['resourceGroup'], machine['name'])
+
+        try:
+            poller = client.virtual_machines.delete(machine['resourceGroup'], machine['name'])
+
+        except azure_exceptions.CloudError as e:
+            raise FailedActivity(e.message)
+
         poller.result(config.load_timeout(configuration))
         machine_records.add(cleanse.machine(machine))
 
@@ -96,7 +103,13 @@ def stop_machines(filter: str = None,
     machine_records = Records()
     for machine in machines:
         logger.debug("Stopping machine '{}'".format(machine['name']))
-        poller = client.virtual_machines.power_off(machine['resourceGroup'], machine['name'])
+
+        try:
+            poller = client.virtual_machines.power_off(machine['resourceGroup'], machine['name'])
+
+        except azure_exceptions.CloudError as e:
+            raise FailedActivity(e.message)
+
         poller.result(config.load_timeout(configuration))
         machine_records.add(cleanse.machine(machine))
 
@@ -137,7 +150,13 @@ def restart_machines(filter: str = None,
     machine_records = Records()
     for machine in machines:
         logger.debug("Restarting machine: {}".format(machine['name']))
-        poller = client.virtual_machines.restart(machine['resourceGroup'], machine['name'])
+
+        try:
+            poller = client.virtual_machines.restart(machine['resourceGroup'], machine['name'])
+
+        except azure_exceptions.CloudError as e:
+            raise FailedActivity(e.message)
+
         poller.result(config.load_timeout(configuration))
         machine_records.add(cleanse.machine(machine))
 
@@ -180,9 +199,14 @@ def start_machines(filter: str = None,
     machine_records = Records()
     for machine in stopped_machines:
         logger.debug("Starting machine '{}'".format(machine['name']))
-        poller = client.virtual_machines.start(machine['resourceGroup'], machine['name'])
-        poller.result(config.load_timeout(configuration))
 
+        try:
+            poller = client.virtual_machines.start(machine['resourceGroup'], machine['name'])
+
+        except azure_exceptions.CloudError as e:
+            raise FailedActivity(e.message)
+
+        poller.result(config.load_timeout(configuration))
         machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')

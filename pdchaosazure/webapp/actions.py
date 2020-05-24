@@ -1,6 +1,7 @@
 from chaoslib import Secrets, Configuration
 from chaoslib.exceptions import FailedActivity
 from logzero import logger
+from msrestazure import azure_exceptions
 
 from pdchaosazure import init_client
 from pdchaosazure.common import cleanse, config
@@ -27,12 +28,18 @@ def stop_webapp(filter: str = None,
     """
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop_webapp.__name__, configuration, filter))
 
+    client = init_client(secrets, configuration)
     webapps = __fetch_webapps(filter, configuration, secrets)
-    compute_client = init_client(secrets, configuration)
     webapps_records = Records()
+    
     for webapp in webapps:
         logger.debug("Stopping web app: {}".format(webapp['name']))
-        poller = compute_client.web_apps.stop(webapp['resourceGroup'], webapp['name'])
+        
+        try:
+            poller = client.web_apps.stop(webapp['resourceGroup'], webapp['name'])
+
+        except azure_exceptions.CloudError as e:
+            raise FailedActivity(e.message)
         poller.result(config.load_timeout(configuration))
         webapps_records.add(cleanse.machine(webapp))
 

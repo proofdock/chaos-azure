@@ -1,10 +1,11 @@
 import os
 
+from azure.mgmt.compute import ComputeManagementClient
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
 from msrestazure import azure_exceptions
 
-from pdchaosazure import init_client
+from pdchaosazure import load_secrets, load_subscription_id, auth
 from pdchaosazure.common import config
 from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
@@ -43,7 +44,16 @@ def prepare(compute: dict, script: str):
 
 def run(resource_group: str, compute: dict, duration: int, parameters: dict,
         secrets, configuration):
-    client = init_client(secrets, configuration)
+    secrets1 = load_secrets(secrets)
+    configuration1 = load_subscription_id(configuration)
+    with auth(secrets1) as authentication:
+        base_url = secrets1.get('cloud').endpoints.resource_manager
+        client1 = ComputeManagementClient(
+            credentials=authentication,
+            subscription_id=configuration1.get('subscription_id'),
+            base_url=base_url)
+
+        client = client1
     compute_type = compute.get('type').lower()
 
     try:
@@ -61,9 +71,7 @@ def run(resource_group: str, compute: dict, duration: int, parameters: dict,
             raise InterruptExecution(msg)
 
     except azure_exceptions.CloudError as e:
-        msg = e.message
-        raise FailedActivity(msg)
-        logger.error(msg)
+        raise FailedActivity(e.message)
 
     timeout = config.load_timeout(configuration) + duration
     result = poller.result(timeout)  # Blocking till executed

@@ -25,9 +25,9 @@ def count_instances(filter: str = None,
         "Starting {}: configuration='{}', filter='{}'".format(count_instances.__name__, configuration, filter))
 
     result = []
-    vmss = fetch_vmss(filter, configuration, secrets)
-    for set in vmss:
-        instances = fetch_all_vmss_instances(set, configuration, secrets)
+    vmss_list = fetch_vmss(filter, configuration, secrets)
+    for vmss in vmss_list:
+        instances = fetch_all_vmss_instances(vmss, configuration, secrets)
         result.extend(instances)
 
     return len(result)
