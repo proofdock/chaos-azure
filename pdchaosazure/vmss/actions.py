@@ -42,7 +42,7 @@ def delete_instance(filter: str = None,
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter, configuration, secrets)
     vmss_records = Records()
-    
+
     for vmss in vmss_list:
         instances_records = Records()
         instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
@@ -87,7 +87,7 @@ def restart_instance(filter: str = None,
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter, configuration, secrets)
     vmss_records = Records()
-    
+
     for vmss in vmss_list:
         instances_records = Records()
         instances = fetch_instances(vmss, instance_criteria, configuration, secrets)

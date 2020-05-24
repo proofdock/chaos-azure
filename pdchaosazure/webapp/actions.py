@@ -31,10 +31,10 @@ def stop_webapp(filter: str = None,
     client = init_client(secrets, configuration)
     webapps = __fetch_webapps(filter, configuration, secrets)
     webapps_records = Records()
-    
+
     for webapp in webapps:
         logger.debug("Stopping web app: {}".format(webapp['name']))
-        
+
         try:
             poller = client.web_apps.stop(webapp['resourceGroup'], webapp['name'])
 
