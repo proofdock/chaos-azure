@@ -45,14 +45,14 @@ def delete_instance(filter: str = None,
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             logger.debug("Deleting instance: {}".format(instance['name']))
 
             try:
-                poller = client.virtual_machine_scale_set_vms.delete(vmss['resourceGroup'], vmss['name'],
-                                                                     instance['instance_id'])
+                poller = client.virtual_machine_scale_set_vms.delete(
+                    vmss['resourceGroup'], vmss['name'], instance['instance_id'])
 
             except azure_exceptions.CloudError as e:
                 raise FailedActivity(e.message)
@@ -90,7 +90,7 @@ def restart_instance(filter: str = None,
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             logger.debug("Restarting instance: {}".format(instance['name']))
@@ -157,8 +157,7 @@ def stop_instance(filter: str = None,
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria,
-                                    configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             logger.debug("Stopping instance: {}".format(instance['name']))
@@ -202,7 +201,7 @@ def deallocate_instance(filter: str = None,
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             logger.debug("Deallocating instance: {}".format(instance['name']))
@@ -221,20 +220,6 @@ def deallocate_instance(filter: str = None,
         vmss_records.add(cleanse.vmss(vmss))
 
     return vmss_records.output_as_dict('resources')
-
-
-def stress_vmss_instance_cpu(
-        filter: str = None,
-        duration: int = 120,
-        instance_criteria: Iterable[Mapping[str, any]] = None,
-        configuration: Configuration = None,
-        secrets: Secrets = None):
-    logger.warn(
-        "Deprecated usage of activity 'stress_vmss_instance_cpu'."
-        " Please use activity 'stress_cpu' in favor since this"
-        " activity will be removed in a future release.")
-    return stress_cpu(
-        filter, duration, instance_criteria, configuration, secrets)
 
 
 def stress_cpu(filter: str = None,
@@ -258,11 +243,13 @@ def stress_cpu(filter: str = None,
     logger.debug("Starting stress_vmss_instance_cpu: configuration='{}', filter='{}', duration='{}'".format(
         configuration, filter, duration))
 
+    client = init_client(secrets, configuration)
     vmss_records = Records()
     vmss_list = fetch_vmss(filter, configuration, secrets)
+
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'cpu_stress_test')
@@ -296,11 +283,13 @@ def burn_io(filter: str = None,
     logger.debug(
         "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(configuration, filter, duration))
 
+    client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter, configuration, secrets)
     vmss_records = Records()
+
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'burn_io')
@@ -337,11 +326,13 @@ def fill_disk(filter: str = None,
         "Starting fill_disk: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
             configuration, filter, duration, size, path))
 
+    client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter, configuration, secrets)
     vmss_records = Records()
+
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'fill_disk')
@@ -382,11 +373,13 @@ def network_latency(filter: str = None,
         "Starting network_latency: configuration='{}', filter='{}', duration='{}', delay='{}', jitter='{}'".format(
             configuration, filter, duration, delay, jitter))
 
+    client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter, configuration, secrets)
     vmss_records = Records()
+
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, configuration, secrets)
+        instances = fetch_instances(vmss, instance_criteria, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'network_latency')

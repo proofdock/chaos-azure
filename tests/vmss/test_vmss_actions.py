@@ -74,9 +74,10 @@ def test_delete_vmss(client, fetch_instances, fetch_vmss):
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
+@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch_instance, fetch_vmss):
+def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_client, mocked_instances, mocked_vmss):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'cpu_stress_test.sh'
 
@@ -84,18 +85,20 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch_instance, 
     scale_sets = [scale_set]
     instance = vmss_provider.provide_instance()
     instances = [instance]
-    fetch_vmss.return_value = scale_sets
-    fetch_instance.return_value = instances
+    mocked_vmss.return_value = scale_sets
+    mocked_instances.return_value = instances
 
     config = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
+
+    mocked_client.return_value = MockComputeManagementClient()
 
     # act
     stress_cpu(filter="where name=='some_random_instance'", duration=60, configuration=config, secrets=secrets)
 
     # assert
-    fetch_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
-    fetch_instance.assert_called_with(scale_set, None, config, secrets)
+    mocked_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
+    mocked_instances.assert_called_with(scale_set, None, mocked_client.return_value)
     mocked_command_prepare.assert_called_with(instance, 'cpu_stress_test')
     mocked_command_run.assert_called_with(
         scale_set['resourceGroup'], instance, 60,
@@ -112,9 +115,11 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch_instance, 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
+@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_network_latency(mocked_command_run, mocked_command_prepare, fetch_instances, fetch_vmss):
+def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_client,
+                         mocked_fetch_instances, mocked_fetch_vmss):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'network_latency.sh'
 
@@ -122,19 +127,21 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, fetch_insta
     scale_sets = [scale_set]
     instance = vmss_provider.provide_instance()
     instances = [instance]
-    fetch_vmss.return_value = scale_sets
-    fetch_instances.return_value = instances
+    mocked_fetch_vmss.return_value = scale_sets
+    mocked_fetch_instances.return_value = instances
 
     config = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
+
+    mocked_client.return_value = MockComputeManagementClient()
 
     # act
     network_latency(filter="where name=='some_random_instance'", duration=60, delay=200, jitter=50,
                     configuration=config, secrets=secrets)
 
     # assert
-    fetch_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
-    fetch_instances.assert_called_with(scale_set, None, config, secrets)
+    mocked_fetch_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
+    mocked_fetch_instances.assert_called_with(scale_set, None, mocked_client.return_value)
     mocked_command_prepare.assert_called_with(instance, 'network_latency')
     mocked_command_run.assert_called_with(
         scale_set['resourceGroup'], instance, 60,
@@ -153,9 +160,10 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, fetch_insta
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
+@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_burn_io(mocked_command_run, mocked_command_prepare, fetch_instances, fetch_vmss):
+def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_client, fetch_instances, fetch_vmss):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'burn_io.sh'
 
@@ -169,12 +177,14 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, fetch_instances, fe
     config = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
+    mocked_client.return_value = MockComputeManagementClient()
+
     # act
     burn_io(filter="where name=='some_random_instance'", duration=60, configuration=config, secrets=secrets)
 
     # assert
     fetch_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
-    fetch_instances.assert_called_with(scale_set, None, config, secrets)
+    fetch_instances.assert_called_with(scale_set, None, mocked_client.return_value)
     mocked_command_run.assert_called_with(
         scale_set['resourceGroup'], instance, 60,
         {
@@ -190,11 +200,12 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, fetch_instances, fe
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
+@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_prepare_path, fetch_instances,
-                   fetch_vmss):
+def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_prepare_path,
+                   mocked_client, fetch_instances, fetch_vmss):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'fill_disk.sh'
     mocked_command_prepare_path.return_value = '/root/burn/hard'
@@ -209,13 +220,15 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_pr
     config = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
+    mocked_client.return_value = MockComputeManagementClient()
+
     # act
     fill_disk(filter="where name=='some_random_instance'", duration=60, size=1000, path='/root/burn/hard',
               configuration=config, secrets=secrets)
 
     # assert
     fetch_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
-    fetch_instances.assert_called_with(scale_set, None, config, secrets)
+    fetch_instances.assert_called_with(scale_set, None, mocked_client.return_value)
     mocked_command_run.assert_called_with(
         scale_set['resourceGroup'], instance, 60,
         {

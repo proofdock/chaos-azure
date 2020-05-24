@@ -38,7 +38,7 @@ def test_succesful_fetch_instances_without_instance_criteria(mocked_fetch_instan
 
     scale_set = vmss_provider.provide_scale_set()
 
-    result = fetch_instances(scale_set, None, None, None)
+    result = fetch_instances(scale_set, None, None)
 
     assert len(result) == 1
     assert result[0].get('name') == 'chaos-pool_0'
@@ -51,7 +51,7 @@ def test_empty_fetch_instances_without_instance_criteria(mocked_fetch_instances)
         mocked_fetch_instances.return_value = []
         scale_set = vmss_provider.provide_scale_set()
 
-        fetch_instances(scale_set, None, None, None)
+        fetch_instances(scale_set, None, None)
 
         assert "No VMSS instances" in str(x.value)
 
@@ -70,7 +70,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0(mocked_f
     scale_set = vmss_provider.provide_scale_set()
 
     # fire
-    result = fetch_instances(scale_set, [{'instance_id': '0'}], None, None)
+    result = fetch_instances(scale_set, [{'instance_id': '0'}], None)
 
     # assert
     assert len(result) == 1
@@ -95,7 +95,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0_instance
     scale_set = vmss_provider.provide_scale_set()
 
     # fire
-    result = fetch_instances(scale_set, [{'instance_id': '0'}, {'instance_id': '2'}], None, None)
+    result = fetch_instances(scale_set, [{'instance_id': '0'}, {'instance_id': '2'}], None)
 
     # assert
     assert len(result) == 2
@@ -123,7 +123,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_all_instances(mock
 
     # fire
     result = fetch_instances(
-        scale_set, [{'instance_id': '0'}, {'instance_id': '1'}, {'instance_id': '2'}], None, None)
+        scale_set, [{'instance_id': '0'}, {'instance_id': '1'}, {'instance_id': '2'}], None)
 
     # assert
     assert len(result) == 3
@@ -151,6 +151,6 @@ def test_empty_fetch_instances_with_instance_criteria(mocked_fetch_instances):
     # fire
     with pytest.raises(FailedActivity) as x:
         fetch_instances(
-            scale_set, [{'instance_id': '99'}, {'instance_id': '100'}, {'instance_id': '101'}], None, None)
+            scale_set, [{'instance_id': '99'}, {'instance_id': '100'}, {'instance_id': '101'}], None)
 
         assert "No VMSS instance" in x.value
