@@ -3,7 +3,7 @@ from chaoslib.exceptions import FailedActivity
 from logzero import logger
 from msrestazure import azure_exceptions
 
-from pdchaosazure.common import cleanse, config
+from pdchaosazure.common import cleanse
 from pdchaosazure.vmss.records import Records
 from pdchaosazure.webapp import init_client
 
@@ -31,15 +31,13 @@ def stop_webapp(filter: str = None,
     webapps_records = Records()
 
     for webapp in webapps:
-        logger.debug("Stopping web app: {}".format(webapp['name']))
-
         try:
-            response = client.web_apps.stop(webapp['resourceGroup'], webapp['name'], raw=True)
+            logger.debug("Stopping web app: {}".format(webapp['name']))
+            client.web_apps.stop(webapp['resourceGroup'], webapp['name'], raw=True)
+            webapps_records.add(cleanse.machine(webapp))
 
         except azure_exceptions.CloudError as e:
             raise FailedActivity(e.message)
-
-        webapps_records.add(cleanse.machine(webapp))
 
     return webapps_records.output_as_dict('resources')
 
@@ -60,10 +58,14 @@ def restart_webapp(filter: str = None,
     webapps = fetch_webapps(filter, configuration, secrets)
     client = init_client(secrets, configuration)
     webapps_records = Records()
+
     for webapp in webapps:
-        logger.debug("Restarting web app: {}".format(webapp['name']))
-        response = client.web_apps.restart(webapp['resourceGroup'], webapp['name'], raw=True)
-        webapps_records.add(cleanse.machine(webapp))
+        try:
+            logger.debug("Restarting web app: {}".format(webapp['name']))
+            client.web_apps.restart(webapp['resourceGroup'], webapp['name'], raw=True)
+            webapps_records.add(cleanse.machine(webapp))
+        except azure_exceptions.CloudError as e:
+            raise FailedActivity(e.message)
 
     return webapps_records.output_as_dict('resources')
 
@@ -87,9 +89,13 @@ def delete_webapp(filter: str = None,
     webapps = fetch_webapps(filter, configuration, secrets)
     client = init_client(secrets, configuration)
     webapps_records = Records()
+
     for webapp in webapps:
-        logger.debug("Deleting web app: {}".format(webapp['name']))
-        response = client.web_apps.delete(webapp['resourceGroup'], webapp['name'], raw=True)
-        webapps_records.add(cleanse.machine(webapp))
+        try:
+            logger.debug("Deleting web app: {}".format(webapp['name']))
+            client.web_apps.delete(webapp['resourceGroup'], webapp['name'], raw=True)
+            webapps_records.add(cleanse.machine(webapp))
+        except azure_exceptions.CloudError as e:
+            raise FailedActivity(e.message)
 
     return webapps_records.output_as_dict('resources')
