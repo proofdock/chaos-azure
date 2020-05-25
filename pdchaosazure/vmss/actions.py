@@ -270,7 +270,8 @@ def burn_io(filter_vmss: str = None,
         Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
     """
     logger.debug(
-        "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(configuration, filter_vmss, duration))
+        "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(
+            configuration, filter_vmss, duration))
 
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
