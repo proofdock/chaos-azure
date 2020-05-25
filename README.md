@@ -217,6 +217,102 @@ Here is a full example for an experiment containing secrets and configuration:
 }
 ```
 
+## Filter arguments
+
+This extension is making heavy use of the [Kusto query language][kusto] to filter those Azure resources that an experiment is targeting.
+
+The Kusto query language in Azure is a read-only request to process data and return results. The request is stated in plain text, using a data-flow model designed to make the syntax easy to read.
+
+Given that an Azure subscription contains the following Azure resources:
+
+```json
+[
+    {
+        "name": "machine_1",
+        "resourceGroup": "my_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+    },
+    {
+        "name": "machine_2",
+        "resourceGroup": "my_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+    },
+    {
+        "name": "machine_1",
+        "resourceGroup": "another_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+    }
+]
+```
+
+With a filter you can ultimatively select the Azure resources that shall be attacked. For example:
+* ``where resourceGroup=='my_resource_group''`` will select those machines for an attack
+  ```json
+  [
+      {
+        "name": "machine_1",
+        "resourceGroup": "my_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+      },
+      {
+        "name": "machine_2",
+        "resourceGroup": "my_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+      }
+  ]
+  ```
+* ``where name=='machine_1''`` will select those machines for an attack
+  ```json
+  [
+      {
+        "name": "machine_1",
+        "resourceGroup": "my_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+      },
+      {
+        "name": "machine_1",
+        "resourceGroup": "another_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+      }
+  ]
+  ```
+* ``where name=='machine_1' and resourceGroup='my_resource_group''`` will select
+  ```json
+  [
+      {
+        "name": "machine_1",
+        "resourceGroup": "my_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+      }
+  ]
+* If you want to randomly select one machine of your resource group you may do the following operation: ``where resourceGroup='my_resource_group'' | sample 1``. The ``sample`` operator is generating randomness to your selection.
+  ```json
+  [
+      {
+        "name": "<one of your machines in the 'my_resource_group'>",
+        "resourceGroup": "my_resource_group",
+        "type": "Microsoft.Compute/virtualMachines"
+      }
+  ]
+  ```
+* If you omit the filter entirely one machine out your subscription (if any) is taken.
+
+[kusto]: https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/
+
+### Kusto Query Language Light
+
+At some places in the chaos experiment API some Azure resources are not supported by Azure to be filtered with the Kusto Query Language. A very prominent example are instances of a virtual machine set such as Virtual Machine Scale Sets.
+
+We anyhow decided to support you with an easy way of filtering for those resources as well with a Kusto Query Language Light (KQLL) syntax. The KQLL defines a small subset of the KQL from Azure but should serve the daily purposes of the chaos experiments.
+
+The small subset defines:
+* ``where``-clauses with ``and`` and ``or`` expressions
+* pipe ``|`` operators
+* ``take``, ``top``, and ``sample`` commands
+* Equality operators such as ``==``, ``>=``, ``<=``, ``>``, and ``<``
+* If you omit the KQLL filter one resource of the cluster is selected at random.
+* Those queries that provide the KQLL syntax will be marked as such in the activity's documentation.
+
 ## Contribute
 
 If you wish to contribute more functions to this package, you are more than

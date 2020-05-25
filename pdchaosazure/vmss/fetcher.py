@@ -1,41 +1,30 @@
-import random
-from typing import Any, Dict, Iterable, Mapping, List
+from typing import Any, Dict, List
 
+import jmespath
 from azure.mgmt.compute import ComputeManagementClient
-from chaoslib.exceptions import FailedActivity
-from logzero import logger
+from chaoslib.exceptions import FailedActivity, InterruptExecution
 
+from pdchaosazure.common import kustolight
 from pdchaosazure.common.resources.graph import fetch_resources
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS
 
 
-def fetch_instances(scale_set, instance_criteria, client: ComputeManagementClient) -> List[Dict[str, Any]]:
-    if not instance_criteria:
-        instance = __random_instance_from(scale_set, client)
-        result = [instance]
+def fetch_instances(vmss, filter_instances: str, client: ComputeManagementClient) -> List[Dict[str, Any]]:
+    if not filter_instances:
+        filter_instances = "sample 1"
 
-    else:
-        result = instances_by_criteria(scale_set, instance_criteria, client)
-
-    return result
-
-
-def instances_by_criteria(vmss: dict, instance_criteria, client) -> List[Dict[str, Any]]:
-    result = []
-    instances = fetch_all_vmss_instances(vmss, client)
-
-    for instance in instances:
-        if __is_criteria_matched(instance, instance_criteria):
-            result.append(instance)
-
-    if len(result) == 0:
-        raise FailedActivity("No VMSS instance found for criteria '{}'".format(instance_criteria))
+    try:
+        instances = fetch_all_vmss_instances(vmss, client)
+        result = kustolight.filter_resources(instances, filter_instances)
+    except jmespath.exceptions.ParseError:
+        raise InterruptExecution("'{}' is an invalid query. Please have a look at the documentation.".format(
+            filter_instances))
 
     return result
 
 
-def fetch_vmss(filter, configuration, secrets) -> List[dict]:
-    vmss = fetch_resources(filter, RES_TYPE_VMSS, secrets, configuration)
+def fetch_vmss(filter_vmss, configuration, secrets) -> List[dict]:
+    vmss = fetch_resources(filter_vmss, RES_TYPE_VMSS, secrets, configuration)
 
     if not vmss:
         raise FailedActivity("No VMSS found")
@@ -63,31 +52,6 @@ def fetch_all_vmss_instances(vmss, client: ComputeManagementClient) -> List[Dict
 #############################################################################
 # Private helper functions
 #############################################################################
-def __random_instance_from(scale_set, client) -> Dict[str, Any]:
-    instances = fetch_all_vmss_instances(scale_set, client)
-    if not instances:
-        raise FailedActivity("No VMSS instances found")
-    else:
-        logger.debug("Found VMSS instances: {}".format([x['name'] for x in instances]))
-
-    return random.choice(instances)
-
-
-def __is_criteria_matched(instance: dict, criteria: Iterable[Mapping[str, any]] = None):
-    for criterion in criteria:
-        mismatch = False
-
-        for key, value in criterion.items():
-            if instance[key] != value:
-                mismatch = True
-                break
-
-        if not mismatch:
-            return True
-
-    return False
-
-
 def __parse_vmss_instances_result(instances, vmss: dict) -> List[Dict]:
     results = []
     for instance in instances:

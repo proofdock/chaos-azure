@@ -1,14 +1,11 @@
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, patch
 
 import pytest
-from azure.mgmt.compute.v2018_10_01.models import InstanceViewStatus, \
-    RunCommandResult
 from chaoslib.exceptions import FailedActivity
 
 import pdchaosazure
-from pdchaosazure.machine.actions import restart_machines, stop_machines, \
-    delete_machines, start_machines, stress_cpu, fill_disk, network_latency, \
-    burn_io
+from pdchaosazure.machine.actions import restart_machines, stop_machines, delete_machines, \
+    start_machines, stress_cpu, fill_disk, network_latency, burn_io
 from pdchaosazure.machine.constants import RES_TYPE_VM
 from tests.data import machine_provider, config_provider, secrets_provider
 

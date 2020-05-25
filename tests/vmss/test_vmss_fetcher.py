@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from chaoslib.exceptions import FailedActivity
+from chaoslib.exceptions import FailedActivity, InterruptExecution
 
 import pdchaosazure
 from pdchaosazure.vmss.actions import delete_instance
@@ -46,18 +46,16 @@ def test_succesful_fetch_instances_without_instance_criteria(mocked_fetch_instan
 
 
 @patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
-def test_empty_fetch_instances_without_instance_criteria(mocked_fetch_instances):
-    with pytest.raises(FailedActivity) as x:
-        mocked_fetch_instances.return_value = []
-        scale_set = vmss_provider.provide_scale_set()
+def test_happily_fetch_empty_list_instances_with_empty_instance_filter(mocked_fetch_instances):
+    mocked_fetch_instances.return_value = []
+    scale_set = vmss_provider.provide_scale_set()
 
-        fetch_instances(scale_set, None, None)
-
-        assert "No VMSS instances" in str(x.value)
+    result = fetch_instances(scale_set, None, None)
+    assert len(result) == 0
 
 
 @patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
-def test_succesful_fetch_instances_with_instance_criteria_for_instance0(mocked_fetch_instances):
+def test_happily_fetch_instances_with_instance_filter_for_instance0(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()
     instance_0['instance_id'] = '0'
@@ -70,7 +68,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0(mocked_f
     scale_set = vmss_provider.provide_scale_set()
 
     # fire
-    result = fetch_instances(scale_set, [{'instance_id': '0'}], None)
+    result = fetch_instances(scale_set, "where instance_id=='0'", None)
 
     # assert
     assert len(result) == 1
@@ -79,7 +77,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0(mocked_f
 
 
 @patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
-def test_succesful_fetch_instances_with_instance_criteria_for_instance0_instance_2(mocked_fetch_instances):
+def test_happily_fetch_instances_with_instance_filter_for_instance0_or_instance_2(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()
     instance_0['instance_id'] = '0'
@@ -95,7 +93,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0_instance
     scale_set = vmss_provider.provide_scale_set()
 
     # fire
-    result = fetch_instances(scale_set, [{'instance_id': '0'}, {'instance_id': '2'}], None)
+    result = fetch_instances(scale_set, "where instance_id=='0' or instance_id=='2'", None)
 
     # assert
     assert len(result) == 2
@@ -106,7 +104,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_instance0_instance
 
 
 @patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
-def test_succesful_fetch_instances_with_instance_criteria_for_all_instances(mocked_fetch_instances):
+def test_happily_fetch_instances_with_instance_filter_for_all_instances(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()
     instance_0['instance_id'] = '0'
@@ -122,8 +120,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_all_instances(mock
     scale_set = vmss_provider.provide_scale_set()
 
     # fire
-    result = fetch_instances(
-        scale_set, [{'instance_id': '0'}, {'instance_id': '1'}, {'instance_id': '2'}], None)
+    result = fetch_instances(scale_set, "top 3", None)
 
     # assert
     assert len(result) == 3
@@ -136,7 +133,7 @@ def test_succesful_fetch_instances_with_instance_criteria_for_all_instances(mock
 
 
 @patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)
-def test_empty_fetch_instances_with_instance_criteria(mocked_fetch_instances):
+def test_sadly_fetch_instances_with_invalid_instance_criteria(mocked_fetch_instances):
     # arrange
     instance_0 = vmss_provider.provide_instance()
     instance_0['instance_id'] = '0'
@@ -149,8 +146,7 @@ def test_empty_fetch_instances_with_instance_criteria(mocked_fetch_instances):
     scale_set = vmss_provider.provide_scale_set()
 
     # fire
-    with pytest.raises(FailedActivity) as x:
-        fetch_instances(
-            scale_set, [{'instance_id': '99'}, {'instance_id': '100'}, {'instance_id': '101'}], None)
+    with pytest.raises(InterruptExecution) as x:
+        fetch_instances(scale_set, "invalid filter query syntax", None)
 
-        assert "No VMSS instance" in x.value
+        assert "invalid query" in x.value
