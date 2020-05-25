@@ -1,67 +1,61 @@
 from unittest.mock import patch, MagicMock
 
 from pdchaosazure.webapp.actions import stop_webapp, restart_webapp, delete_webapp
-
-CONFIG = {
-    "azure": {
-        "subscription_id": "X"
-    }
-}
-
-SECRETS = {
-    "client_id": "X",
-    "client_secret": "X",
-    "tenant_id": "X"
-}
-
-resource = {
-    'name': 'chaos-webapp',
-    'resourceGroup': 'rg'}
+from tests.data import config_provider, secrets_provider, webapp_provider
 
 
-@patch('pdchaosazure.webapp.actions.__fetch_webapps', autospec=True)
+@patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
 @patch('pdchaosazure.webapp.actions.init_client', autospec=True)
-def test_stop_webapp(init, fetch):
+def test_happily_stop_webapp(init, fetch):
+    config = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_public()
+    webapp = webapp_provider.default()
+
     client = MagicMock()
     init.return_value = client
-    resource_list = [resource]
+    resource_list = [webapp]
     fetch.return_value = resource_list
 
     f = "where resourceGroup=~'rg'"
-    stop_webapp(f, CONFIG, SECRETS)
+    stop_webapp(f, config, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
-    client.web_apps.stop.assert_called_with(resource['resourceGroup'],
-                                            resource['name'])
+    fetch.assert_called_with(f, config, secrets)
+    client.web_apps.stop.assert_called_with(webapp['resourceGroup'], webapp['name'])
 
 
-@patch('pdchaosazure.webapp.actions.__fetch_webapps', autospec=True)
+@patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
 @patch('pdchaosazure.webapp.actions.init_client', autospec=True)
-def test_restart_webapp(init, fetch):
+def test_happily_restart_webapp(init, fetch):
+    config = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_public()
+    webapp = webapp_provider.default()
+
     client = MagicMock()
     init.return_value = client
-    resource_list = [resource]
+    resource_list = [webapp]
     fetch.return_value = resource_list
 
     f = "where resourceGroup=~'rg'"
-    restart_webapp(f, CONFIG, SECRETS)
+    restart_webapp(f, config, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
-    client.web_apps.restart.assert_called_with(resource['resourceGroup'],
-                                            resource['name'])
+    fetch.assert_called_with(f, config, secrets)
+    client.web_apps.restart.assert_called_with(webapp['resourceGroup'], webapp['name'])
 
 
-@patch('pdchaosazure.webapp.actions.__fetch_webapps', autospec=True)
+@patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
 @patch('pdchaosazure.webapp.actions.init_client', autospec=True)
-def test_delete_webapp(init, fetch):
+def test_happily_delete_webapp(init, fetch):
+    webapp = webapp_provider.default()
+    config = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_public()
+
     client = MagicMock()
     init.return_value = client
-    resource_list = [resource]
+    resource_list = [webapp]
     fetch.return_value = resource_list
 
     f = "where resourceGroup=~'rg'"
-    delete_webapp(f, CONFIG, SECRETS)
+    delete_webapp(f, config, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
-    client.web_apps.delete.assert_called_with(resource['resourceGroup'],
-                                             resource['name'])
+    fetch.assert_called_with(f, config, secrets)
+    client.web_apps.delete.assert_called_with(webapp['resourceGroup'], webapp['name'])
