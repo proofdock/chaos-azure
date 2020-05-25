@@ -20,7 +20,7 @@ from typing import List
 
 import jmespath
 
-operator_pattern = re.compile(r'[=><~]{2}')
+operator_pattern = re.compile(r'[=><~]{1,2}')
 
 
 def __split_clause(clause, delimiter):
@@ -32,7 +32,7 @@ def __split_clause(clause, delimiter):
 
 def __and_or_expressions_to_jmespath(where_clause: str) -> str:
     result = ""
-    expression_pattern = re.compile(r'[\s]+(?:and|or){1}[\s]+[\w]+[\s]*[=><~]{2}[\s]*[\']?[\w]*[\']?')
+    expression_pattern = re.compile(r'[\s]+(?:and|or){1}[\s]+[\w]+[\s]*[=><~]{1,2}[\s]*[\']?[\w]*[\']?')
     expression_clauses = expression_pattern.findall(where_clause)
 
     for clause in expression_clauses:
@@ -55,7 +55,7 @@ def __where_clause_to_jmespath(where_clause: str):
     """ Transforms a Kusto light where clause to JMESPath syntax """
 
     # Regex patterns to find operator, where clauses and possible and/or expressions
-    where_pattern = re.compile(r'where[\s]+[\w]+[\s]*[=><~]{2}[\s]*[\']?[\w]*[\']?')
+    where_pattern = re.compile(r'where[\s]+[\w]+[\s]*[=><~]{1,2}[\s]*[\']?[\w]*[\']?')
 
     # Only one where clause is allowed - so we return it together with its operator
     found_where = where_pattern.findall(where_clause)[0]
@@ -70,7 +70,7 @@ def __where_clause_to_jmespath(where_clause: str):
 def __where_clauses_to_jmespath(kustolight_filter: str) -> str:
     """ Catches where clauses such as ``where instance_id == '0' and name=='i_0' or interval==30`` """
     result = kustolight_filter
-    where_pattern = re.compile((r'where[\s]+[\w]+[\s]*[=><~]{2}[\s]*[\']?[\w]*[\']?'
+    where_pattern = re.compile((r'where[\s]+[\w]+[\s]*[=><~]{1,2}[\s]*[\']?[\w]*[\']?'
                                 r'(?:[\s]+(?:and|or){1}[\s]+[\w]+[\s]*[=><~]{2}[\s]*[\']?[\w]*[\']?)*'))
     where_clauses = where_pattern.findall(kustolight_filter)
     for kustol_clause in where_clauses:

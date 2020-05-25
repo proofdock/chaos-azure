@@ -33,7 +33,7 @@ def delete_instance(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: KQLL: Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(delete_instance.__name__, configuration, filter_vmss))
@@ -78,7 +78,7 @@ def restart_instance(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: KQLL: Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(restart_instance.__name__, configuration, filter_vmss))
@@ -123,7 +123,7 @@ def stop_instance(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: KQLL: Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(stop_instance.__name__, configuration, filter_vmss))
@@ -167,7 +167,7 @@ def deallocate_instance(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(deallocate_instance.__name__, configuration, filter_vmss))
@@ -213,7 +213,7 @@ def stress_cpu(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s).
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates high CPU usage. Defaults to 120 seconds.
@@ -264,7 +264,7 @@ def burn_io(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s).
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
@@ -318,7 +318,7 @@ def fill_disk(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s).
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates random data on disk. Defaults to 120 seconds.
@@ -383,7 +383,7 @@ def network_latency(filter_vmss: str = None,
         Filter the virtual machine scale set(s).
 
     filter_instances : str, optional
-        Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s).
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates network latency. Defaults to 60 seconds.
