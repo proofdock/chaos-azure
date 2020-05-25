@@ -65,7 +65,7 @@ def test_load_subscription_from_experiment_dict():
     }
 
     # act
-    configuration = config.load_configuration(experiment_configuration)
+    configuration = config.load_subscription_id(experiment_configuration)
 
     # assert
     assert configuration.get('subscription_id') == "AZURE_SUBSCRIPTION_ID"
@@ -80,7 +80,7 @@ def test_load_legacy_subscription_from_experiment_dict():
     }
 
     # act
-    configuration = config.load_configuration(experiment_configuration)
+    configuration = config.load_subscription_id(experiment_configuration)
 
     # assert
     assert configuration.get('subscription_id') == "AZURE_SUBSCRIPTION_ID"
@@ -94,7 +94,34 @@ def test_load_subscription_from_credential_file(monkeypatch):
         os.path.join(settings_dir, 'credentials.json'))
 
     # act
-    configuration = config.load_configuration(experiment_configuration)
+    configuration = config.load_subscription_id(experiment_configuration)
 
     # assert
     assert configuration.get('subscription_id') == "AZURE_SUBSCRIPTION_ID"
+
+
+def test_load_timeout_from_experiment_dict():
+    # arrange
+    experiment_configuration = {
+        "azure_subscription_id": "AZURE_SUBSCRIPTION_ID",
+        "timeout": 500
+    }
+
+    # act
+    timeout = config.load_timeout(experiment_configuration)
+
+    # assert
+    assert timeout == 500
+
+
+def test_load_timeout_from_experiment_dict():
+    # arrange
+    experiment_configuration = {
+        "azure_subscription_id": "AZURE_SUBSCRIPTION_ID",
+    }
+
+    # act
+    timeout = config.load_timeout(experiment_configuration)
+
+    # assert
+    assert timeout == 600

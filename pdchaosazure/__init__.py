@@ -13,7 +13,7 @@ from chaoslib.types import (Configuration, DiscoveredActivities, Discovery,
 from logzero import logger
 
 from pdchaosazure.auth import auth
-from pdchaosazure.common.config import load_configuration, load_secrets
+from pdchaosazure.common.config import load_subscription_id, load_secrets
 
 __all__ = [
     "__version__", "discover", "init_client", "init_resource_graph_client"
@@ -33,32 +33,25 @@ def discover(discover_system: bool = True) -> Discovery:
     return discovery
 
 
-def init_client(
-        experiment_secrets: Secrets,
-        experiment_configuration: Configuration) -> ComputeManagementClient:
-
+def init_client(experiment_secrets: Secrets, experiment_configuration: Configuration) -> ComputeManagementClient:
     secrets = load_secrets(experiment_secrets)
-    configuration = load_configuration(experiment_configuration)
+    configuration = load_subscription_id(experiment_configuration)
+
     with auth(secrets) as authentication:
         base_url = secrets.get('cloud').endpoints.resource_manager
-        client = ComputeManagementClient(
-            credentials=authentication,
-            subscription_id=configuration.get('subscription_id'),
-            base_url=base_url)
+        client = ComputeManagementClient(credentials=authentication,
+                                         subscription_id=configuration.get('subscription_id'),
+                                         base_url=base_url)
 
         return client
 
 
-def init_resource_graph_client(
-        experiment_secrets: Secrets) -> ResourceGraphClient:
-
+def init_resource_graph_client(experiment_secrets: Secrets) -> ResourceGraphClient:
     secrets = load_secrets(experiment_secrets)
+
     with auth(secrets) as authentication:
         base_url = secrets.get('cloud').endpoints.resource_manager
-        client = ResourceGraphClient(
-            credentials=authentication,
-            base_url=base_url)
-
+        client = ResourceGraphClient(credentials=authentication, base_url=base_url)
         return client
 
 

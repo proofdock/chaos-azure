@@ -1,7 +1,6 @@
 from unittest.mock import patch, MagicMock
 
-from pdchaosazure.webapp.actions import stop_webapp, restart_webapp, \
-    start_webapp, delete_webapp
+from pdchaosazure.webapp.actions import stop_webapp, restart_webapp, delete_webapp
 
 CONFIG = {
     "azure": {
@@ -20,7 +19,7 @@ resource = {
     'resourceGroup': 'rg'}
 
 
-@patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
+@patch('pdchaosazure.webapp.actions.__fetch_webapps', autospec=True)
 @patch('pdchaosazure.webapp.actions.init_client', autospec=True)
 def test_stop_webapp(init, fetch):
     client = MagicMock()
@@ -36,7 +35,7 @@ def test_stop_webapp(init, fetch):
                                             resource['name'])
 
 
-@patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
+@patch('pdchaosazure.webapp.actions.__fetch_webapps', autospec=True)
 @patch('pdchaosazure.webapp.actions.init_client', autospec=True)
 def test_restart_webapp(init, fetch):
     client = MagicMock()
@@ -52,23 +51,7 @@ def test_restart_webapp(init, fetch):
                                             resource['name'])
 
 
-@patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
-@patch('pdchaosazure.webapp.actions.init_client', autospec=True)
-def test_start_webapp(init, fetch):
-    client = MagicMock()
-    init.return_value = client
-    resource_list = [resource]
-    fetch.return_value = resource_list
-
-    f = "where resourceGroup=~'rg'"
-    start_webapp(f, CONFIG, SECRETS)
-
-    fetch.assert_called_with(f, CONFIG, SECRETS)
-    client.web_apps.start.assert_called_with(resource['resourceGroup'],
-                                               resource['name'])
-
-
-@patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
+@patch('pdchaosazure.webapp.actions.__fetch_webapps', autospec=True)
 @patch('pdchaosazure.webapp.actions.init_client', autospec=True)
 def test_delete_webapp(init, fetch):
     client = MagicMock()

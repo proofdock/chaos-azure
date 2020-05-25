@@ -2,10 +2,10 @@
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
 
-from pdchaosazure.common.resources.graph import fetch_resources
-from pdchaosazure.vmss.constants import RES_TYPE_VMSS
-
 __all__ = ["count_instances"]
+
+from pdchaosazure import init_client
+from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_all_vmss_instances
 
 
 def count_instances(filter: str = None,
@@ -23,8 +23,13 @@ def count_instances(filter: str = None,
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
     logger.debug(
-        "Starting count_instances: configuration='{}', filter='{}'".format(
-            configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(count_instances.__name__, configuration, filter))
 
-    instances = fetch_resources(filter, RES_TYPE_VMSS, secrets, configuration)
-    return len(instances)
+    result = []
+    client = init_client(secrets, configuration)
+    vmss_list = fetch_vmss(filter, configuration, secrets)
+    for vmss in vmss_list:
+        instances = fetch_all_vmss_instances(vmss, client)
+        result.extend(instances)
+
+    return len(result)

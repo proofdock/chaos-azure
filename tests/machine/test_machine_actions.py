@@ -221,15 +221,13 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     # act
-    stress_cpu(filter="where name=='some_linux_machine'",
-               duration=60, timeout=60, configuration=config, secrets=secrets)
+    stress_cpu(filter="where name=='some_linux_machine'", duration=60, configuration=config, secrets=secrets)
 
     # assert
-    fetch.assert_called_with(
-        "where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
+    fetch.assert_called_with("where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
     mocked_command_prepare.assert_called_with(machine, 'cpu_stress_test')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 120,
+        machine['resourceGroup'], machine, 60,
         {
             'command_id': 'RunShellScript',
             'script': ['cpu_stress_test.sh'],
@@ -246,7 +244,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch):
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_fill_disk(mocked_command_run, mocked_command_prepare_path,
-                         mocked_command_prepare, fetch):
+                   mocked_command_prepare, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'fill_disk.sh'
     mocked_command_prepare_path.return_value = '/root/burn/hard'
@@ -259,16 +257,14 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path,
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     # act
-    fill_disk(filter="where name=='some_linux_machine'",
-              duration=60, timeout=60, size=1000,
-              path='/root/burn/hard', configuration=config, secrets=secrets)
+    fill_disk(filter="where name=='some_linux_machine'", duration=60, size=1000, path='/root/burn/hard',
+              configuration=config, secrets=secrets)
 
     # assert
-    fetch.assert_called_with(
-        "where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
+    fetch.assert_called_with("where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
     mocked_command_prepare.assert_called_with(machine, 'fill_disk')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 120,
+        machine['resourceGroup'], machine, 60,
         {
             'command_id': 'RunShellScript',
             'script': ['fill_disk.sh'],
@@ -297,16 +293,14 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     # act
-    network_latency(filter="where name=='some_linux_machine'",
-                    duration=60, delay=200, jitter=50, timeout=60,
-                    configuration=config, secrets=secrets)
+    network_latency(filter="where name=='some_linux_machine'", duration=60, delay=200, jitter=50, configuration=config,
+                    secrets=secrets)
 
     # assert
-    fetch.assert_called_with(
-        "where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
+    fetch.assert_called_with("where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
     mocked_command_prepare.assert_called_with(machine, 'network_latency')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 120,
+        machine['resourceGroup'], machine, 60,
         {
             'command_id': 'RunShellScript',
             'script': ['network_latency.sh'],
@@ -335,15 +329,14 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     # act
-    burn_io(filter="where name=='some_linux_machine'",
-            duration=60, configuration=config, secrets=secrets)
+    burn_io(filter="where name=='some_linux_machine'", duration=60, configuration=config, secrets=secrets)
 
     # assert
     fetch.assert_called_with(
         "where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
     mocked_command_prepare.assert_called_with(machine, 'burn_io')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 120,
+        machine['resourceGroup'], machine, 60,
         {
             'command_id': 'RunShellScript',
             'script': ['burn_io.sh'],

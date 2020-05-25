@@ -20,11 +20,9 @@ def describe_webapps(filter: str = None,
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
     logger.debug(
-        "Start describe_webapps: configuration='{}', filter='{}'".format(
-            configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(describe_webapps.__name__, configuration, filter))
 
-    webapps = fetch_resources(filter, RES_TYPE_WEBAPP, secrets, configuration)
-    return webapps
+    return fetch_resources(filter, RES_TYPE_WEBAPP, secrets, configuration)
 
 
 def count_webapps(filter: str = None,
@@ -41,9 +39,7 @@ def count_webapps(filter: str = None,
         Filtering example:
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
-    logger.debug(
-        "Start count_machines: configuration='{}', filter='{}'".format(
-            configuration, filter))
+    logger.debug("Start {}: configuration='{}', filter='{}'".format(count_webapps.__name__, configuration, filter))
 
     webapps = fetch_resources(filter, RES_TYPE_WEBAPP, secrets, configuration)
     return len(webapps)

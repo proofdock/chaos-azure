@@ -1,14 +1,14 @@
 from azure.mgmt.resourcegraph.models import QueryRequest
 from chaoslib import Configuration
 
-from pdchaosazure.common.config import load_configuration
+from pdchaosazure.common.config import load_subscription_id
 
 
 def create_request(
         resource_type: str, user_query: str, experiment_configuration: Configuration) -> QueryRequest:
 
     prepared_query = __prepare(resource_type, user_query)
-    configuration = load_configuration(experiment_configuration)
+    configuration = load_subscription_id(experiment_configuration)
 
     result = QueryRequest(
         query=prepared_query,
