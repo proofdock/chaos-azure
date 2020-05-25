@@ -1,7 +1,8 @@
-chaostoolkit-lib>==1.1.2
 azure-mgmt-compute
 azure-mgmt-resourcegraph
 azure-mgmt-web
+chaostoolkit-lib>==1.1.2
 dateparser
+jmespath
 logzero
 requests

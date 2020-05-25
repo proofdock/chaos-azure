@@ -94,7 +94,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_client, m
     mocked_client.return_value = MockComputeManagementClient()
 
     # act
-    stress_cpu(filter="where name=='some_random_instance'", duration=60, configuration=config, secrets=secrets)
+    stress_cpu(filter_vmss="where name=='some_random_instance'", duration=60, configuration=config, secrets=secrets)
 
     # assert
     mocked_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
@@ -136,7 +136,7 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_clie
     mocked_client.return_value = MockComputeManagementClient()
 
     # act
-    network_latency(filter="where name=='some_random_instance'", duration=60, delay=200, jitter=50,
+    network_latency(filter_vmss="where name=='some_random_instance'", duration=60, delay=200, jitter=50,
                     configuration=config, secrets=secrets)
 
     # assert
@@ -180,7 +180,7 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_client, fetc
     mocked_client.return_value = MockComputeManagementClient()
 
     # act
-    burn_io(filter="where name=='some_random_instance'", duration=60, configuration=config, secrets=secrets)
+    burn_io(filter_vmss="where name=='some_random_instance'", duration=60, configuration=config, secrets=secrets)
 
     # assert
     fetch_vmss.assert_called_with("where name=='some_random_instance'", config, secrets)
@@ -223,7 +223,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_pr
     mocked_client.return_value = MockComputeManagementClient()
 
     # act
-    fill_disk(filter="where name=='some_random_instance'", duration=60, size=1000, path='/root/burn/hard',
+    fill_disk(filter_vmss="where name=='some_random_instance'", duration=60, size=1000, path='/root/burn/hard',
               configuration=config, secrets=secrets)
 
     # assert

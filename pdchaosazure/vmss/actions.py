@@ -12,40 +12,39 @@ from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_instances
 from pdchaosazure.vmss.records import Records
 
 __all__ = [
-    "delete_instance", "restart_instance", "stop_instance", "deallocate_instance",
-    "burn_io", "fill_disk", "network_latency", "stress_cpu"
+    "burn_io", "deallocate_instance", "delete_instance", "fill_disk", "network_latency",
+    "restart_instance", "stop_instance", "stress_cpu"
 ]
 
 
-def delete_instance(filter: str = None,
-                    instance_criteria: Iterable[Mapping[str, any]] = None,
+def delete_instance(filter_vmss: str = None,
+                    filter_instances: str = None,
                     configuration: Configuration = None,
                     secrets: Secrets = None):
     """
-    Delete a virtual machine scale set instance at random.
+    Delete instances from the filtered scale sets either at random or by a defined instance filter.
 
-    **Be aware**: Deleting a VMSS instance is an invasive action. You will not
-    be able to recover the VMSS instance once you deleted it.
+    **Be aware**: Deleting a VMSS instance is an invasive action.
+    You will not be able to recover the VMSS instance once you deleted it.
 
-     Parameters
+    Parameters
     ----------
-    filter : str
-        Filter the virtual machine scale set. If the filter is omitted all
-        virtual machine scale sets in the subscription will be selected as
-        potential chaos candidates.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(delete_instance.__name__, configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(delete_instance.__name__, configuration, filter_vmss))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             logger.debug("Deleting instance: {}".format(instance['name']))
@@ -66,31 +65,31 @@ def delete_instance(filter: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def restart_instance(filter: str = None,
-                     instance_criteria: Iterable[Mapping[str, any]] = None,
+def restart_instance(filter_vmss: str = None,
+                     filter_instances: str = None,
                      configuration: Configuration = None,
                      secrets: Secrets = None):
     """
-    Restart a virtual machine scale set instance at random.
-     Parameters
+    Restart instances from the filtered scale sets either at random or by a defined instance filter.
+
+    Parameters
     ----------
-    filter : str
-        Filter the virtual machine scale set. If the filter is omitted all
-        virtual machine scale sets in the subscription will be selected as
-        potential chaos candidates.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(restart_instance.__name__, configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(restart_instance.__name__, configuration, filter_vmss))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             logger.debug("Restarting instance: {}".format(instance['name']))
@@ -111,53 +110,31 @@ def restart_instance(filter: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def stop_instance(filter: str = None,
-                  instance_criteria: Iterable[Mapping[str, any]] = None,
+def stop_instance(filter_vmss: str = None,
+                  filter_instances: str = None,
                   configuration: Configuration = None,
                   secrets: Secrets = None):
     """
-    Stops instances from the filtered scale set either at random or by
-     a defined instance criteria.
-     Parameters
+    Stops instances from the filtered scale sets either at random or by a defined instance filter.
+
+    Parameters
     ----------
-    filter : str
-        Filter the virtual machine scale set. If the filter is omitted all
-        virtual machine scale sets in the subscription will be selected as
-        potential chaos candidates.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
-    instance_criteria :  Iterable[Mapping[str, any]]
-        Allows specification of criteria for selection of a given virtual
-        machine scale set instance. If the instance_criteria is omitted,
-        an instance will be chosen at random. All of the criteria within each
-        item of the Iterable must match, i.e. AND logic is applied.
-        The first item with all matching criterion will be used to select the
-        instance.
-        Criteria example:
-        [
-         {"name": "myVMSSInstance1"},
-         {
-          "name": "myVMSSInstance2",
-          "instanceId": "2"
-         }
-         {"instanceId": "3"},
-        ]
-        If the instances include two items. One with name = myVMSSInstance4
-        and instanceId = 2. The other with name = myVMSSInstance2 and
-        instanceId = 3. The criteria {"instanceId": "3"} will be the first
-        match since both the name and the instanceId did not match on the
-        first criteria.
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(stop_instance.__name__, configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(stop_instance.__name__, configuration, filter_vmss))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             logger.debug("Stopping instance: {}".format(instance['name']))
@@ -177,31 +154,31 @@ def stop_instance(filter: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def deallocate_instance(filter: str = None,
-                        instance_criteria: Iterable[Mapping[str, any]] = None,
+def deallocate_instance(filter_vmss: str = None,
+                        filter_instances: str = None,
                         configuration: Configuration = None,
                         secrets: Secrets = None):
     """
-    Deallocate a virtual machine scale set instance at random.
-     Parameters
+    Deallocate instances from the filtered scale sets either at random or by a defined instance filter.
+
+    Parameters
     ----------
-    filter : str
-        Filter the virtual machine scale set. If the filter is omitted all
-        virtual machine scale sets in the subscription will be selected as
-        potential chaos candidates.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(deallocate_instance.__name__, configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(deallocate_instance.__name__, configuration, filter_vmss))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             logger.debug("Deallocating instance: {}".format(instance['name']))
@@ -222,34 +199,35 @@ def deallocate_instance(filter: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def stress_cpu(filter: str = None,
+def stress_cpu(filter_vmss: str = None,
+               filter_instances: str = None,
                duration: int = 120,
-               instance_criteria: Iterable[Mapping[str, any]] = None,
                configuration: Configuration = None,
                secrets: Secrets = None):
     """
-    Stresses the CPU of a random VMSS instances in your selected VMSS.
-    Similar to the stress_cpu action of the machine.actions module.
+    CPU stressing for instances from the filtered scale sets either at random or by a defined instance filter.
 
     Parameters
     ----------
-    filter : str, optional
-        Filter the VMSS. If the filter is omitted all VMSS in
-        the subscription will be selected as potential chaos candidates.
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
+
     duration : int, optional
-        Duration of the stress test (in seconds) that generates high CPU usage.
-        Defaults to 120 seconds.
+        Duration of the stress test (in seconds) that generates high CPU usage. Defaults to 120 seconds.
     """
     logger.debug("Starting stress_vmss_instance_cpu: configuration='{}', filter='{}', duration='{}'".format(
-        configuration, filter, duration))
+        configuration, filter_vmss, duration))
 
     client = init_client(secrets, configuration)
     vmss_records = Records()
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'cpu_stress_test')
@@ -271,25 +249,36 @@ def stress_cpu(filter: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def burn_io(filter: str = None,
+def burn_io(filter_vmss: str = None,
+            filter_instances: str = None,
             duration: int = 60,
-            instance_criteria: Iterable[Mapping[str, any]] = None,
             configuration: Configuration = None,
             secrets: Secrets = None):
     """
-    Increases the Disk I/O operations per second of the VMSS machine.
-    Similar to the burn_io action of the machine.actions module.
+    Simulate heavy disk I/O operations on instances from the filtered scale sets
+    either at random or by a defined instance filter.
+
+    Parameters
+    ----------
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
+
+    duration : int, optional
+        Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
     """
     logger.debug(
-        "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(configuration, filter, duration))
+        "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(configuration, filter_vmss, duration))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'burn_io')
@@ -311,28 +300,46 @@ def burn_io(filter: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def fill_disk(filter: str = None,
+def fill_disk(filter_vmss: str = None,
+              filter_instances: Iterable[Mapping[str, any]] = None,
               duration: int = 120,
               size: int = 1000,
               path: str = None,
-              instance_criteria: Iterable[Mapping[str, any]] = None,
               configuration: Configuration = None,
               secrets: Secrets = None):
     """
-    Fill the VMSS machine disk with random data. Similar to
-    the fill_disk action of the machine.actions module.
+    Fill the disk with random data on instances from the filtered scale sets
+    either at random or by a defined instance filter.
+
+    Parameters
+    ----------
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
+
+    duration : int, optional
+        Duration of the stress test (in seconds) that generates random data on disk. Defaults to 120 seconds.
+
+    size : int, optional
+        Size of the stressing file that is generated in Megabytes. Defaults to 1000 MB.
+
+    path : str, optional
+        Location of the stressing file where it is generated. Defaults to ``/root/burn`` on Linux systems
+        and ``C:/burn`` on Windows machines.
     """
     logger.debug(
         "Starting fill_disk: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
-            configuration, filter, duration, size, path))
+            configuration, filter_vmss, duration, size, path))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'fill_disk')
@@ -358,28 +365,45 @@ def fill_disk(filter: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def network_latency(filter: str = None,
+def network_latency(filter_vmss: str = None,
+                    filter_instances: str = None,
                     duration: int = 60,
                     delay: int = 200,
                     jitter: int = 50,
-                    instance_criteria: Iterable[Mapping[str, any]] = None,
                     configuration: Configuration = None,
                     secrets: Secrets = None):
     """
-    Increases the response time of the virtual machine. Similar to
-    the network_latency action of the machine.actions module.
+    Increases the response time on instances from the filtered scale sets
+    either at random or by a defined instance filter.
+
+    Parameters
+    ----------
+    filter_vmss : str, optional
+        Filter the virtual machine scale set(s).
+
+    filter_instances : str, optional
+        Filter the instances of the selected virtual machine scale set(s).
+
+    duration : int, optional
+        Duration of the stress test (in seconds) that generates network latency. Defaults to 60 seconds.
+
+    delay : int, optional
+        Applied delay of the response time in milliseconds. Defaults to 200 milliseconds.
+
+    jitter : int, optional
+        Applied +/- jitter to the delay of the response time in milliseconds. Defaults to 50 milliseconds.
     """
     logger.debug(
         "Starting network_latency: configuration='{}', filter='{}', duration='{}', delay='{}', jitter='{}'".format(
-            configuration, filter, duration, delay, jitter))
+            configuration, filter_vmss, duration, delay, jitter))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter, configuration, secrets)
+    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_criteria, client)
+        instances = fetch_instances(vmss, filter_instances, client)
 
         for instance in instances:
             command_id, script_content = command.prepare(instance, 'network_latency')
