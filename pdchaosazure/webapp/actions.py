@@ -33,7 +33,7 @@ def stop_webapp(filter: str = None,
     for webapp in webapps:
         try:
             logger.debug("Stopping web app: {}".format(webapp['name']))
-            client.web_apps.stop(webapp['resourceGroup'], webapp['name'], raw=True)
+            client.web_apps.stop(webapp['resourceGroup'], webapp['name'])
             webapps_records.add(cleanse.machine(webapp))
 
         except azure_exceptions.CloudError as e:
@@ -62,7 +62,7 @@ def restart_webapp(filter: str = None,
     for webapp in webapps:
         try:
             logger.debug("Restarting web app: {}".format(webapp['name']))
-            client.web_apps.restart(webapp['resourceGroup'], webapp['name'], raw=True)
+            client.web_apps.restart(webapp['resourceGroup'], webapp['name'])
             webapps_records.add(cleanse.machine(webapp))
         except azure_exceptions.CloudError as e:
             raise FailedActivity(e.message)
@@ -93,7 +93,7 @@ def delete_webapp(filter: str = None,
     for webapp in webapps:
         try:
             logger.debug("Deleting web app: {}".format(webapp['name']))
-            client.web_apps.delete(webapp['resourceGroup'], webapp['name'], raw=True)
+            client.web_apps.delete(webapp['resourceGroup'], webapp['name'])
             webapps_records.add(cleanse.machine(webapp))
         except azure_exceptions.CloudError as e:
             raise FailedActivity(e.message)
