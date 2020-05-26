@@ -4,8 +4,8 @@ import pytest
 from chaoslib.exceptions import FailedActivity
 
 import pdchaosazure
-from pdchaosazure.machine.actions import restart_machines, stop_machines, delete_machines, \
-    start_machines, stress_cpu, fill_disk, network_latency, burn_io
+from pdchaosazure.machine.actions import (burn_io, fill_disk, delete_machines, network_latency,
+                                          restart_machines, stop_machines, stress_cpu)
 from pdchaosazure.machine.constants import RES_TYPE_VM
 from tests.data import machine_provider, config_provider, secrets_provider
 
@@ -182,25 +182,6 @@ def test_restart_machine_with_no_machines(fetch):
         restart_machines(None, None, None)
 
     assert "No virtual machines found" in str(x.value)
-
-
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
-def test_start_machine_with_no_machines(fetch):
-    with pytest.raises(FailedActivity) as x:
-        resource_list = []
-        fetch.return_value = resource_list
-        start_machines()
-
-    assert "No virtual machines found" in str(x.value)
-
-
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__fetch_all_stopped_machines',
-       autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
-def test_start_machine(init, fetch_stopped, fetch_all):
-    client = MagicMock()
-    init.return_value = client
 
 
 @patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
