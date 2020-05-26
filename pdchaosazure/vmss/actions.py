@@ -5,9 +5,8 @@ from chaoslib.exceptions import FailedActivity
 from logzero import logger
 from msrestazure import azure_exceptions
 
-from pdchaosazure import init_client
 from pdchaosazure.common import cleanse, config
-from pdchaosazure.common.compute import command
+from pdchaosazure.common.compute import command, init_client
 from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_instances
 from pdchaosazure.vmss.records import Records
 
