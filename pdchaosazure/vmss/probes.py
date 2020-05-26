@@ -4,7 +4,7 @@ from logzero import logger
 
 __all__ = ["count_instances"]
 
-from pdchaosazure import init_client
+from pdchaosazure.common.compute import init_client
 from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_all_vmss_instances
 
 
