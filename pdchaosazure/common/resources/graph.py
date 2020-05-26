@@ -1,13 +1,11 @@
 from datetime import datetime
 from typing import List
 
-from azure.mgmt.resourcegraph.models \
-    import ErrorResponseException
+from azure.mgmt.resourcegraph.models import ErrorResponseException
 from chaoslib.exceptions import InterruptExecution
 from chaoslib.types import Secrets, Configuration
 
-from pdchaosazure import init_resource_graph_client
-from pdchaosazure.common.resources import query
+from pdchaosazure.common.resources import query, init_client
 
 
 def fetch_resources(user_query: str, resource_type: str,
@@ -17,7 +15,7 @@ def fetch_resources(user_query: str, resource_type: str,
 
     # prepare resource graph client
     try:
-        client = init_resource_graph_client(secrets)
+        client = init_client(secrets)
         resources = client.resources(query_request)
     except ErrorResponseException as e:
         msg = e.inner_exception.error.code

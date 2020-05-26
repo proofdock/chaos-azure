@@ -1,15 +1,13 @@
-import random
+from typing import List
 
-from chaoslib.exceptions import FailedActivity
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
 
-from pdchaosazure.aks.constants import RES_TYPE_AKS
+from pdchaosazure.aks.fetcher import fetch_aks
 from pdchaosazure.machine.actions import delete_machines, stop_machines, \
     restart_machines
-from pdchaosazure.common.resources.graph import fetch_resources
 
-__all__ = ["delete_node", "stop_node", "restart_node"]
+__all__ = ["delete_node", "restart_node", "stop_node"]
 
 
 def delete_node(filter: str = None,
@@ -29,11 +27,11 @@ def delete_node(filter: str = None,
         Filtering example:
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
-    logger.debug(
-        "Start delete_node: configuration='{}', filter='{}'".format(
-            configuration, filter))
+    logger.debug("Start {}: configuration='{}', filter='{}'".format(delete_node.__name__, configuration, filter))
 
-    query = node_resource_group_query(filter, configuration, secrets)
+    aks = fetch_aks(filter, configuration, secrets)
+    query = __query_from_aks(aks)
+
     return delete_machines(query, configuration, secrets)
 
 
@@ -51,11 +49,11 @@ def stop_node(filter: str = None,
         Filtering example:
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
-    logger.debug(
-        "Start stop_node: configuration='{}', filter='{}'".format(
-            configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop_node.__name__, configuration, filter))
 
-    query = node_resource_group_query(filter, configuration, secrets)
+    aks = fetch_aks(filter, configuration, secrets)
+    query = __query_from_aks(aks)
+
     return stop_machines(query, configuration, secrets)
 
 
@@ -73,26 +71,22 @@ def restart_node(filter: str = None,
         Filtering example:
         'where resourceGroup=="myresourcegroup" and name="myresourcename"'
     """
-    logger.debug(
-        "Start restart_node: configuration='{}', filter='{}'".format(
-            configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(restart_node.__name__, configuration, filter))
 
-    query = node_resource_group_query(filter, configuration, secrets)
+    aks = fetch_aks(filter, configuration, secrets)
+    query = __query_from_aks(aks)
+
     return restart_machines(query, configuration, secrets)
 
 
-###############################################################################
-# Private helper functions
-###############################################################################
-def node_resource_group_query(query, configuration, secrets):
-    aks = fetch_resources(query, RES_TYPE_AKS, secrets, configuration)
-    if not aks:
-        logger.warning("No AKS clusters found")
-        raise FailedActivity("No AKS clusters found")
-    else:
-        logger.debug(
-            "Found AKS clusters: {}".format(
-                [x['name'] for x in aks]))
-    choice = random.choice(aks)
-    node_resource_group = choice['properties']['nodeResourceGroup']
-    return "where resourceGroup =~ '{}'".format(node_resource_group)
+##################################################################
+# HELPER FUNCTIONS
+##################################################################
+def __query_from_aks(aks_list: List[dict]) -> str:
+    result = "where resourceGroup =~ '{}'".format(aks_list[0]['properties']['nodeResourceGroup'])
+
+    for aks in aks_list[1:]:
+        node_resource_group = aks['properties']['nodeResourceGroup']
+        result += " or resourceGroup =~ '{}'".format(node_resource_group)
+
+    return result
