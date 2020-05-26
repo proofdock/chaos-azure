@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 import jmespath
 from azure.mgmt.compute import ComputeManagementClient
-from chaoslib.exceptions import FailedActivity, InterruptExecution
+from chaoslib.exceptions import InterruptExecution
 
 from pdchaosazure.common import kustolight
 from pdchaosazure.common.resources.graph import fetch_resources
@@ -25,10 +25,6 @@ def fetch_instances(vmss, filter_instances: str, client: ComputeManagementClient
 
 def fetch_vmss(filter_vmss, configuration, secrets) -> List[dict]:
     vmss = fetch_resources(filter_vmss, RES_TYPE_VMSS, secrets, configuration)
-
-    if not vmss:
-        raise FailedActivity("No VMSS found")
-
     return vmss
 
 

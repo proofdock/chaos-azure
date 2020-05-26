@@ -1,7 +1,7 @@
 from pdchaosazure.machine.constants import RES_TYPE_VM
 
 
-def provide_machine(os_type: str = 'Linux'):
+def default(os_type: str = 'Linux'):
     return {
         'name': 'chaos-machine',
         'resourceGroup': 'rg',
