@@ -9,7 +9,7 @@ from chaoslib.types import (DiscoveredActivities, Discovery)
 from logzero import logger
 
 from pdchaosazure.auth import auth
-from pdchaosazure.common.config import load_subscription_id, load_secrets # noqa: F401
+from pdchaosazure.common.config import load_subscription_id, load_secrets  # noqa: F401
 
 __all__ = [
     "__version__", "auth", "discover", "load_secrets", "load_subscription_id"
