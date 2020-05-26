@@ -14,7 +14,7 @@ from pdchaosazure.common.config import load_subscription_id, load_secrets  # noq
 __all__ = [
     "__version__", "auth", "discover", "load_secrets", "load_subscription_id"
 ]
-__version__ = '0.8.12-dev7'
+__version__ = '0.8.12-dev8'
 __package__ = "proofdock-chaos-azure"
 
 
