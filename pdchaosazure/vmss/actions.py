@@ -1,3 +1,4 @@
+import concurrent
 from typing import Iterable, Mapping
 
 from chaoslib import Configuration, Secrets
@@ -45,18 +46,16 @@ def delete_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            logger.debug("Deleting instance: {}".format(instance['name']))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                try:
+                    poller = client.virtual_machine_scale_set_vms.delete(
+                        vmss['resourceGroup'], vmss['name'], instance['instance_id'])
+                except azure_exceptions.CloudError as e:
+                    raise FailedActivity(e.message)
 
-            try:
-                poller = client.virtual_machine_scale_set_vms.delete(
-                    vmss['resourceGroup'], vmss['name'], instance['instance_id'])
-
-            except azure_exceptions.CloudError as e:
-                raise FailedActivity(e.message)
-
-            poller.result(config.load_timeout(configuration))
-            instances_records.add(cleanse.vmss_instance(instance))
+                executor.submit(
+                    __long_poll, delete_instance.__name__, instance, poller, instances_records, configuration)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -80,7 +79,8 @@ def restart_instance(filter_vmss: str = None,
         a random instance from your VMSS is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(restart_instance.__name__, configuration, filter_vmss))
+        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}'".format(
+            restart_instance.__name__, configuration, filter_vmss, filter_instances))
 
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
@@ -90,18 +90,16 @@ def restart_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            logger.debug("Restarting instance: {}".format(instance['name']))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                try:
+                    poller = client.virtual_machine_scale_set_vms.restart(vmss['resourceGroup'], vmss['name'],
+                                                                          instance['instance_id'])
+                except azure_exceptions.CloudError as e:
+                    raise FailedActivity(e.message)
 
-            try:
-                poller = client.virtual_machine_scale_set_vms.restart(vmss['resourceGroup'], vmss['name'],
-                                                                      instance['instance_id'])
-
-            except azure_exceptions.CloudError as e:
-                raise FailedActivity(e.message)
-
-            poller.result(config.load_timeout(configuration))
-            instances_records.add(cleanse.vmss_instance(instance))
+                executor.submit(
+                    __long_poll, restart_instance.__name__, instance, poller, instances_records, configuration)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -125,7 +123,8 @@ def stop_instance(filter_vmss: str = None,
         a random instance from your VMSS is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(stop_instance.__name__, configuration, filter_vmss))
+        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}'".format(
+            stop_instance.__name__, configuration, filter_vmss, filter_instances))
 
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
@@ -135,17 +134,16 @@ def stop_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            logger.debug("Stopping instance: {}".format(instance['name']))
-            try:
-                poller = client.virtual_machine_scale_set_vms.power_off(vmss['resourceGroup'], vmss['name'],
-                                                                        instance['instance_id'])
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                try:
+                    poller = client.virtual_machine_scale_set_vms.power_off(
+                        vmss['resourceGroup'], vmss['name'], instance['instance_id'])
+                except azure_exceptions.CloudError as e:
+                    raise FailedActivity(e.message)
 
-            except azure_exceptions.CloudError as e:
-                raise FailedActivity(e.message)
-
-            poller.result(config.load_timeout(configuration))
-            instances_records.add(cleanse.vmss_instance(instance))
+                executor.submit(
+                    __long_poll, stop_instance.__name__, instance, poller, instances_records, configuration)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -169,7 +167,8 @@ def deallocate_instance(filter_vmss: str = None,
         a random instance from your VMSS is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(deallocate_instance.__name__, configuration, filter_vmss))
+        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}'".format(
+            deallocate_instance.__name__, configuration, filter_vmss, filter_instances))
 
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
@@ -179,18 +178,18 @@ def deallocate_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            logger.debug("Deallocating instance: {}".format(instance['name']))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                logger.debug("Deallocating instance: {}".format(instance['name']))
 
-            try:
-                poller = client.virtual_machine_scale_set_vms.deallocate(vmss['resourceGroup'], vmss['name'],
-                                                                         instance['instance_id'])
+                try:
+                    poller = client.virtual_machine_scale_set_vms.deallocate(vmss['resourceGroup'], vmss['name'],
+                                                                             instance['instance_id'])
+                except azure_exceptions.CloudError as e:
+                    raise FailedActivity(e.message)
 
-            except azure_exceptions.CloudError as e:
-                raise FailedActivity(e.message)
-
-            poller.result(config.load_timeout(configuration))
-            instances_records.add(cleanse.vmss_instance(instance))
+                executor.submit(
+                    __long_poll, deallocate_instance.__name__, instance, poller, instances_records, configuration)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -217,30 +216,32 @@ def stress_cpu(filter_vmss: str = None,
     duration : int, optional
         Duration of the stress test (in seconds) that generates high CPU usage. Defaults to 120 seconds.
     """
-    logger.debug("Starting stress_vmss_instance_cpu: configuration='{}', filter='{}', duration='{}'".format(
-        configuration, filter_vmss, duration))
+    logger.debug("Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', duration='{}'".format(
+        stress_cpu.__name__, configuration, filter_vmss, filter_instances, duration))
 
-    client = init_client(secrets, configuration)
-    vmss_records = Records()
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    client = init_client(secrets, configuration)
+
+    vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            command_id, script_content = command.prepare(instance, 'cpu_stress_test')
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "duration", 'value': duration}
-                ]
-            }
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                command_id, script_content = command.prepare(instance, 'cpu_stress_test')
+                parameters = {
+                    'command_id': command_id,
+                    'script': [script_content],
+                    'parameters': [
+                        {'name': "duration", 'value': duration}
+                    ]
+                }
 
-            logger.debug("Executing operation '{}' on instance: '{}'".format(stress_cpu.__name__, instance['name']))
-            command.run(vmss['resourceGroup'], instance, duration, parameters, secrets, configuration)
-            instances_records.add(cleanse.vmss_instance(instance))
+                executor.submit(
+                    __long_poll_command, stress_cpu.__name__,
+                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -268,8 +269,8 @@ def burn_io(filter_vmss: str = None,
         Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
     """
     logger.debug(
-        "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(
-            configuration, filter_vmss, duration))
+        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', duration='{}',".format(
+            burn_io.__name__, configuration, filter_vmss, filter_instances, duration))
 
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
@@ -279,19 +280,20 @@ def burn_io(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            command_id, script_content = command.prepare(instance, 'burn_io')
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "duration", 'value': duration}
-                ]
-            }
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                command_id, script_content = command.prepare(instance, 'burn_io')
+                parameters = {
+                    'command_id': command_id,
+                    'script': [script_content],
+                    'parameters': [
+                        {'name': "duration", 'value': duration}
+                    ]
+                }
 
-            logger.debug("Executing operation '{}' on instance: '{}'".format(burn_io.__name__, instance['name']))
-            command.run(vmss['resourceGroup'], instance, duration, parameters, secrets, configuration)
-            instances_records.add(cleanse.vmss_instance(instance))
+                executor.submit(
+                    __long_poll_command, burn_io.__name__,
+                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -328,34 +330,37 @@ def fill_disk(filter_vmss: str = None,
         and ``C:/burn`` on Windows machines.
     """
     logger.debug(
-        "Starting fill_disk: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
-            configuration, filter_vmss, duration, size, path))
+        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', "
+        "duration='{}', size='{}', path='{}'".format(
+            fill_disk.__name__, configuration, filter_vmss, filter_instances, duration, size, path))
 
-    client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    client = init_client(secrets, configuration)
+
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            command_id, script_content = command.prepare(instance, 'fill_disk')
-            fill_path = command.prepare_path(instance, path)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                command_id, script_content = command.prepare(instance, 'fill_disk')
+                fill_path = command.prepare_path(instance, path)
 
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "duration", 'value': duration},
-                    {'name': "size", 'value': size},
-                    {'name': "path", 'value': fill_path}
-                ]
-            }
+                parameters = {
+                    'command_id': command_id,
+                    'script': [script_content],
+                    'parameters': [
+                        {'name': "duration", 'value': duration},
+                        {'name': "size", 'value': size},
+                        {'name': "path", 'value': fill_path}
+                    ]
+                }
 
-            logger.debug("Executing operation '{}' on instance: '{}'".format(fill_disk.__name__, instance['name']))
-            command.run(vmss['resourceGroup'], instance, duration, parameters, secrets, configuration)
-            instances_records.add(cleanse.vmss_instance(instance))
+                executor.submit(
+                    __long_poll_command, fill_disk.__name__,
+                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -391,35 +396,60 @@ def network_latency(filter_vmss: str = None,
         Applied +/- jitter to the delay of the response time in milliseconds. Defaults to 50 milliseconds.
     """
     logger.debug(
-        "Starting network_latency: configuration='{}', filter='{}', duration='{}', delay='{}', jitter='{}'".format(
-            configuration, filter_vmss, duration, delay, jitter))
+        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', "
+        "duration='{}', delay='{}', jitter='{}'".format(
+            network_latency.__name__, configuration, filter_vmss, filter_instances, duration, delay, jitter))
 
-    client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    client = init_client(secrets, configuration)
+
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
-        for instance in instances:
-            command_id, script_content = command.prepare(instance, 'network_latency')
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "duration", 'value': duration},
-                    {'name': "delay", 'value': delay},
-                    {'name': "jitter", 'value': jitter}
-                ]
-            }
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
+            for instance in instances:
+                command_id, script_content = command.prepare(instance, 'network_latency')
+                parameters = {
+                    'command_id': command_id,
+                    'script': [script_content],
+                    'parameters': [
+                        {'name': "duration", 'value': duration},
+                        {'name': "delay", 'value': delay},
+                        {'name': "jitter", 'value': jitter}
+                    ]
+                }
 
-            logger.debug(
-                "Executing operation '{}' on instance: '{}'".format(network_latency.__name__, instance['name']))
-            command.run(vmss['resourceGroup'], instance, duration, parameters, secrets, configuration)
-            instances_records.add(cleanse.vmss_instance(instance))
+                command.run(vmss['resourceGroup'], instance, duration, parameters, secrets, configuration)
+                instances_records.add(cleanse.vmss_instance(instance))
+
+                executor.submit(
+                    __long_poll_command, network_latency.__name__,
+                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
 
     return vmss_records.output_as_dict('resources')
+
+
+###########################
+#  PRIVATE HELPER FUNCTIONS
+###########################
+def __long_poll(activity, instance, poller, records, configuration):
+    logger.debug("Waiting for operation '{}' on instance '{}' to finish. Giving priority to other operations.".format(
+        activity, instance['name']))
+    poller.result(config.load_timeout(configuration))
+    records.add(cleanse.vmss_instance(instance))
+    logger.debug("Finished operation '{}' on instance '{}'.".format(activity, instance['name']))
+
+
+def __long_poll_command(activity, group, instance, duration, parameters, records, configuration, client):
+    logger.debug("Waiting for operation '{}' on instance '{}' to finish. Giving priority to other operations.".format(
+        activity, instance['name']))
+    timeout = config.load_timeout(configuration) + duration
+    command.run(group, instance, timeout, parameters, client)
+    records.add(cleanse.vmss_instance(instance))
+    logger.debug("Finished operation '{}' on instance '{}'.".format(activity, instance['name']))

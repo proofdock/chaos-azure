@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import concurrent
 
 from chaoslib.exceptions import FailedActivity
 from chaoslib.types import Configuration, Secrets
@@ -35,17 +36,17 @@ def delete_machines(filter: str = None,
     machines = fetch_machines(filter, configuration, secrets)
     client = init_client(secrets, configuration)
     machine_records = Records()
-    for machine in machines:
-        logger.debug("Deleting machine: {}".format(machine['name']))
 
-        try:
-            poller = client.virtual_machines.delete(machine['resourceGroup'], machine['name'])
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
+        for machine in machines:
+            logger.debug("Deleting machine: {}".format(machine['name']))
 
-        except azure_exceptions.CloudError as e:
-            raise FailedActivity(e.message)
+            try:
+                poller = client.virtual_machines.delete(machine['resourceGroup'], machine['name'])
+            except azure_exceptions.CloudError as e:
+                raise FailedActivity(e.message)
 
-        poller.result(config.load_timeout(configuration))
-        machine_records.add(cleanse.machine(machine))
+            executor.submit(__long_poll, machine, poller, machine_records, config)
 
     return machine_records.output_as_dict('resources')
 
@@ -66,17 +67,17 @@ def stop_machines(filter: str = None,
     client = init_client(secrets, configuration)
 
     machine_records = Records()
-    for machine in machines:
-        logger.debug("Stopping machine '{}'".format(machine['name']))
 
-        try:
-            poller = client.virtual_machines.power_off(machine['resourceGroup'], machine['name'])
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
+        for machine in machines:
+            logger.debug("Stopping machine '{}'".format(machine['name']))
 
-        except azure_exceptions.CloudError as e:
-            raise FailedActivity(e.message)
+            try:
+                poller = client.virtual_machines.power_off(machine['resourceGroup'], machine['name'])
+            except azure_exceptions.CloudError as e:
+                raise FailedActivity(e.message)
 
-        poller.result(config.load_timeout(configuration))
-        machine_records.add(cleanse.machine(machine))
+            executor.submit(__long_poll, machine, poller, machine_records, config)
 
     return machine_records.output_as_dict('resources')
 
@@ -97,17 +98,17 @@ def restart_machines(filter: str = None,
     machines = fetch_machines(filter, configuration, secrets)
     client = init_client(secrets, configuration)
     machine_records = Records()
-    for machine in machines:
-        logger.debug("Restarting machine: {}".format(machine['name']))
 
-        try:
-            poller = client.virtual_machines.restart(machine['resourceGroup'], machine['name'])
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
+        for machine in machines:
+            logger.debug("Restarting machine: {}".format(machine['name']))
 
-        except azure_exceptions.CloudError as e:
-            raise FailedActivity(e.message)
+            try:
+                poller = client.virtual_machines.restart(machine['resourceGroup'], machine['name'])
+            except azure_exceptions.CloudError as e:
+                raise FailedActivity(e.message)
 
-        poller.result(config.load_timeout(configuration))
-        machine_records.add(cleanse.machine(machine))
+            executor.submit(__long_poll, machine, poller, machine_records, config)
 
     return machine_records.output_as_dict('resources')
 
@@ -129,25 +130,27 @@ def stress_cpu(filter: str = None,
     """
 
     logger.debug(
-        "Starting stress_cpu: configuration='{}', filter='{}', duration='{}'".format(configuration, filter, duration))
+        "Starting {}: configuration='{}', filter='{}', duration='{}'".format(
+            stress_cpu.__name__, configuration, filter, duration))
 
     machines = fetch_machines(filter, configuration, secrets)
+    client = init_client(secrets, configuration)
 
     machine_records = Records()
-    for machine in machines:
-        command_id, script_content = command.prepare(machine, 'cpu_stress_test')
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
+        for machine in machines:
+            command_id, script_content = command.prepare(machine, 'cpu_stress_test')
+            parameters = {
+                'command_id': command_id,
+                'script': [script_content],
+                'parameters': [
+                    {'name': "duration", 'value': duration}
+                ]
+            }
 
-        parameters = {
-            'command_id': command_id,
-            'script': [script_content],
-            'parameters': [
-                {'name': "duration", 'value': duration}
-            ]
-        }
-
-        logger.debug("Executing operation '{}' on machine '{}'".format(stress_cpu.__name__, machine['name']))
-        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
-        machine_records.add(cleanse.machine(machine))
+            executor.submit(
+                __long_poll_command,
+                stress_cpu.__name__, machine, duration, parameters, machine_records, configuration, client)
 
     return machine_records.output_as_dict('resources')
 
@@ -176,29 +179,31 @@ def fill_disk(filter: str = None,
         Defaults: ``C:\burn`` for Windows clients, ``/root/burn`` for Linux clients.
     """
 
-    logger.debug("Starting fill_disk: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
-        configuration, filter, duration, size, path))
+    logger.debug("Starting {}: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
+        fill_disk.__name__, configuration, filter, duration, size, path))
 
     machines = fetch_machines(filter, configuration, secrets)
+    client = init_client(secrets, configuration)
 
     machine_records = Records()
-    for machine in machines:
-        command_id, script_content = command.prepare(machine, 'fill_disk')
-        fill_path = command.prepare_path(machine, path)
 
-        parameters = {
-            'command_id': command_id,
-            'script': [script_content],
-            'parameters': [
-                {'name': "duration", 'value': duration},
-                {'name': "size", 'value': size},
-                {'name': "path", 'value': fill_path}
-            ]
-        }
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
+        for machine in machines:
+            command_id, script_content = command.prepare(machine, 'fill_disk')
+            fill_path = command.prepare_path(machine, path)
+            parameters = {
+                'command_id': command_id,
+                'script': [script_content],
+                'parameters': [
+                    {'name': "duration", 'value': duration},
+                    {'name': "size", 'value': size},
+                    {'name': "path", 'value': fill_path}
+                ]
+            }
 
-        logger.debug("Executing operation '{}' on machine '{}'".format(fill_disk.__name__, machine['name']))
-        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
-        machine_records.add(cleanse.machine(machine))
+            executor.submit(
+                __long_poll_command,
+                fill_disk.__name__, machine, duration, parameters, machine_records, configuration, client)
 
     return machine_records.output_as_dict('resources')
 
@@ -227,29 +232,31 @@ def network_latency(filter: str = None,
     """
 
     logger.debug(
-        "Starting network_latency: configuration='{}', filter='{}', duration='{}', delay='{}', jitter='{}'".format(
-            configuration, filter, duration, delay, jitter))
+        "Starting {}: configuration='{}', filter='{}', duration='{}', delay='{}', jitter='{}'".format(
+            network_latency.__name__, configuration, filter, duration, delay, jitter))
 
     machines = fetch_machines(filter, configuration, secrets)
+    client = init_client(secrets, configuration)
 
     machine_records = Records()
-    for machine in machines:
-        command_id, script_content = command.prepare(machine, 'network_latency')
 
-        logger.debug("Script content: {}".format(script_content))
-        parameters = {
-            'command_id': command_id,
-            'script': [script_content],
-            'parameters': [
-                {'name': "duration", 'value': duration},
-                {'name': "delay", 'value': delay},
-                {'name': "jitter", 'value': jitter}
-            ]
-        }
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
+        for machine in machines:
+            command_id, script_content = command.prepare(machine, 'network_latency')
+            logger.debug("Script content: {}".format(script_content))
+            parameters = {
+                'command_id': command_id,
+                'script': [script_content],
+                'parameters': [
+                    {'name': "duration", 'value': duration},
+                    {'name': "delay", 'value': delay},
+                    {'name': "jitter", 'value': jitter}
+                ]
+            }
 
-        logger.debug("Executing operation '{}' on machine '{}'".format(network_latency.__name__, machine['name']))
-        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
-        machine_records.add(cleanse.machine(machine))
+            executor.submit(
+                __long_poll_command,
+                network_latency.__name__, machine, duration, parameters, machine_records, configuration, client)
 
     return machine_records.output_as_dict('resources')
 
@@ -270,24 +277,47 @@ def burn_io(filter: str = None,
     """
 
     logger.debug(
-        "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(configuration, filter, duration))
+        "Starting {}: configuration='{}', filter='{}', duration='{}',".format(
+            burn_io.__name__, configuration, filter, duration))
 
     machines = fetch_machines(filter, configuration, secrets)
+    client = init_client(secrets, configuration)
 
     machine_records = Records()
-    for machine in machines:
-        command_id, script_content = command.prepare(machine, 'burn_io')
 
-        parameters = {
-            'command_id': command_id,
-            'script': [script_content],
-            'parameters': [
-                {'name': "duration", 'value': duration}
-            ]
-        }
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
+        for machine in machines:
+            command_id, script_content = command.prepare(machine, 'burn_io')
+            parameters = {
+                'command_id': command_id,
+                'script': [script_content],
+                'parameters': [
+                    {'name': "duration", 'value': duration}
+                ]
+            }
 
-        logger.debug("Executing operation '{}' on machine '{}'".format(burn_io.__name__, machine['name']))
-        command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
-        machine_records.add(cleanse.machine(machine))
+            executor.submit(
+                __long_poll_command,
+                burn_io.__name__, machine, duration, parameters, machine_records, configuration, client)
 
     return machine_records.output_as_dict('resources')
+
+
+###########################
+#  PRIVATE HELPER FUNCTIONS
+###########################
+def __long_poll(activity, machine, poller, records, configuration):
+    logger.debug("Waiting for operation '{}' on machine '{}' to finish. Giving priority to other operations.".format(
+        activity, machine['name']))
+    poller.result(config.load_timeout(configuration))
+    records.add(cleanse.machine(machine))
+    logger.debug("Finished operation '{}' on machine '{}'.".format(activity, machine['name']))
+
+
+def __long_poll_command(activity, machine, duration, parameters, records, configuration, client):
+    logger.debug("Waiting for operation '{}' on machine '{}' to finish. Giving priority to other operations.".format(
+        activity, machine['name']))
+    timeout = config.load_timeout(configuration) + duration
+    command.run(machine['resourceGroup'], machine, timeout, parameters, client)
+    records.add(cleanse.machine(machine))
+    logger.debug("Finished operation '{}' on machine '{}'.".format(activity, machine['name']))
