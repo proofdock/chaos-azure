@@ -16,13 +16,12 @@ from pdchaosazure.webapp.fetcher import fetch_webapps
 def stop_webapp(filter: str = None,
                 configuration: Configuration = None,
                 secrets: Secrets = None):
-    """
-    Stop web app instances either at random or by a defined filter.
+    """Stop web app instances.
 
     Parameters
     ----------
     filter : str, optional
-        Filter the web app instance(s).
+        Filter the web app instance(s). If omitted a random instance from your subscription is selected.
     """
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop_webapp.__name__, configuration, filter))
 
@@ -45,13 +44,12 @@ def stop_webapp(filter: str = None,
 def restart_webapp(filter: str = None,
                    configuration: Configuration = None,
                    secrets: Secrets = None):
-    """
-    Restart web app instances either at random or by a defined filter.
+    """Restart web app instances.
 
     Parameters
     ----------
     filter : str, optional
-        Filter the web app instance(s).
+        Filter the web app instance(s). If omitted a random instance from your subscription is selected.
     """
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(restart_webapp.__name__, configuration, filter))
 
@@ -73,8 +71,7 @@ def restart_webapp(filter: str = None,
 def delete_webapp(filter: str = None,
                   configuration: Configuration = None,
                   secrets: Secrets = None):
-    """
-    Delete web app instances either at random or by a defined filter.
+    """Delete web app instances.
 
     **Be aware**: Deleting a web app is an invasive action. You will not be
     able to recover the web app once you deleted it.
@@ -82,7 +79,7 @@ def delete_webapp(filter: str = None,
     Parameters
     ----------
     filter : str, optional
-        Filter the web app instance(s).
+        Filter the web app instance(s). If omitted a random instance from your subscription is selected.
     """
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(delete_webapp.__name__, configuration, filter))
 

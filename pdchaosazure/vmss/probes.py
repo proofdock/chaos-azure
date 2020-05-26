@@ -16,11 +16,8 @@ def count_instances(filter: str = None,
 
     Parameters
     ----------
-    filter : str
-        Filter the VMSS instance. If the filter is omitted all machines in
-        the subscription will be selected for the probe.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+    filter : str, optional
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(count_instances.__name__, configuration, filter))
