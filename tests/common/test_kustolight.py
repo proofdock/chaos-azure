@@ -65,5 +65,5 @@ def test_filter_violate_with_invalid_filter():
     instances = [instance_0, instance_1]
     input_filter = "sam 1"
 
-    with pytest.raises(jmespath.exceptions.ParseError) as x:
+    with pytest.raises(jmespath.exceptions.ParseError):
         kustolight.filter_resources(instances, input_filter)

@@ -1,12 +1,8 @@
 from unittest.mock import MagicMock, patch
 
-import pytest
-from chaoslib.exceptions import FailedActivity
-
 import pdchaosazure
 from pdchaosazure.machine.actions import (burn_io, fill_disk, delete_machines, network_latency,
                                           restart_machines, stop_machines, stress_cpu)
-from pdchaosazure.machine.constants import RES_TYPE_VM
 from tests.data import machine_provider, config_provider, secrets_provider
 
 CONFIG = {
@@ -42,8 +38,8 @@ class AnyStringWith(str):
         return self in other
 
 
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 def test_delete_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -58,8 +54,8 @@ def test_delete_one_machine(init, fetch):
     assert client.virtual_machines.delete.call_count == 1
 
 
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 def test_delete_one_machine_china(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -74,8 +70,8 @@ def test_delete_one_machine_china(init, fetch):
     assert client.virtual_machines.delete.call_count == 1
 
 
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 def test_delete_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -90,28 +86,8 @@ def test_delete_two_machines(init, fetch):
     assert client.virtual_machines.delete.call_count == 2
 
 
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
-def test_delete_machine_with_no_machines(fetch):
-    with pytest.raises(FailedActivity) as x:
-        resource_list = []
-        fetch.return_value = resource_list
-        delete_machines(None, None, None)
-
-    assert "No virtual machines found" in str(x.value)
-
-
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
-def test_stop_machine_with_no_machines(fetch):
-    with pytest.raises(FailedActivity) as x:
-        resource_list = []
-        fetch.return_value = resource_list
-        stop_machines(None, None, None)
-
-    assert "No virtual machines found" in str(x.value)
-
-
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 def test_stop_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -126,8 +102,8 @@ def test_stop_one_machine(init, fetch):
     assert client.virtual_machines.power_off.call_count == 1
 
 
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 def test_stop_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -142,8 +118,8 @@ def test_stop_two_machines(init, fetch):
     assert client.virtual_machines.power_off.call_count == 2
 
 
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 def test_restart_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -158,8 +134,8 @@ def test_restart_one_machine(init, fetch):
     assert client.virtual_machines.restart.call_count == 1
 
 
-@patch('pdchaosazure.machine.actions.__fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.__compute_mgmt_client', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 def test_restart_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -174,24 +150,14 @@ def test_restart_two_machines(init, fetch):
     assert client.virtual_machines.restart.call_count == 2
 
 
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
-def test_restart_machine_with_no_machines(fetch):
-    with pytest.raises(FailedActivity) as x:
-        resource_list = []
-        fetch.return_value = resource_list
-        restart_machines(None, None, None)
-
-    assert "No virtual machines found" in str(x.value)
-
-
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'cpu_stress_test.sh'
 
-    machine = machine_provider.provide_machine()
+    machine = machine_provider.default()
     machines = [machine]
     fetch.return_value = machines
 
@@ -202,7 +168,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch):
     stress_cpu(filter="where name=='some_linux_machine'", duration=60, configuration=config, secrets=secrets)
 
     # assert
-    fetch.assert_called_with("where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
+    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
     mocked_command_prepare.assert_called_with(machine, 'cpu_stress_test')
     mocked_command_run.assert_called_with(
         machine['resourceGroup'], machine, 60,
@@ -217,7 +183,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch):
     )
 
 
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
@@ -227,7 +193,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path,
     mocked_command_prepare.return_value = 'RunShellScript', 'fill_disk.sh'
     mocked_command_prepare_path.return_value = '/root/burn/hard'
 
-    machine = machine_provider.provide_machine()
+    machine = machine_provider.default()
     machines = [machine]
     fetch.return_value = machines
 
@@ -239,7 +205,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path,
               configuration=config, secrets=secrets)
 
     # assert
-    fetch.assert_called_with("where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
+    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
     mocked_command_prepare.assert_called_with(machine, 'fill_disk')
     mocked_command_run.assert_called_with(
         machine['resourceGroup'], machine, 60,
@@ -256,14 +222,14 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path,
     )
 
 
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_network_latency(mocked_command_run, mocked_command_prepare, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'network_latency.sh'
 
-    machine = machine_provider.provide_machine()
+    machine = machine_provider.default()
     machines = [machine]
     fetch.return_value = machines
 
@@ -275,7 +241,7 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, fetch):
                     secrets=secrets)
 
     # assert
-    fetch.assert_called_with("where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
+    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
     mocked_command_prepare.assert_called_with(machine, 'network_latency')
     mocked_command_run.assert_called_with(
         machine['resourceGroup'], machine, 60,
@@ -292,14 +258,14 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, fetch):
     )
 
 
-@patch('pdchaosazure.machine.actions.fetch_resources', autospec=True)
+@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_burn_io(mocked_command_run, mocked_command_prepare, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'burn_io.sh'
 
-    machine = machine_provider.provide_machine()
+    machine = machine_provider.default()
     machines = [machine]
     fetch.return_value = machines
 
@@ -310,8 +276,7 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, fetch):
     burn_io(filter="where name=='some_linux_machine'", duration=60, configuration=config, secrets=secrets)
 
     # assert
-    fetch.assert_called_with(
-        "where name=='some_linux_machine'", RES_TYPE_VM, secrets, config)
+    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
     mocked_command_prepare.assert_called_with(machine, 'burn_io')
     mocked_command_run.assert_called_with(
         machine['resourceGroup'], machine, 60,

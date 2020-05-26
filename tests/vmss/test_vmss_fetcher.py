@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from chaoslib.exceptions import FailedActivity, InterruptExecution
+from chaoslib.exceptions import InterruptExecution
 
 import pdchaosazure
 from pdchaosazure.vmss.actions import delete_instance
@@ -19,15 +19,6 @@ def test_succesful_fetch_vmss(mocked_fetch_vmss):
 
     assert len(result) == 1
     assert result[0].get('name') == 'chaos-pool'
-
-
-@patch('pdchaosazure.vmss.fetcher.fetch_resources', autospec=True)
-def test_empty_fetch_vmss(mocked_fetch_vmss):
-    with pytest.raises(FailedActivity) as x:
-        mocked_fetch_vmss.return_value = []
-        fetch_vmss(None, None, None)
-
-        assert "No VMSS" in str(x.value)
 
 
 @patch.object(pdchaosazure.vmss.fetcher, 'fetch_all_vmss_instances', autospec=True)

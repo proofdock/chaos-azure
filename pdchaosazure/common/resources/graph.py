@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 from azure.mgmt.resourcegraph.models import ErrorResponseException
-from chaoslib.exceptions import InterruptExecution
+from chaoslib.exceptions import InterruptExecution, FailedActivity
 from chaoslib.types import Secrets, Configuration
 
 from pdchaosazure.common.resources import query, init_client
@@ -26,6 +26,10 @@ def fetch_resources(user_query: str, resource_type: str,
 
     # prepare results
     results = __to_dicts(resources.data, client.api_version)
+
+    if not results:
+        raise FailedActivity("Could not find resources of type '{}' and filter '{}'".format(resource_type, user_query))
+
     return results
 
 

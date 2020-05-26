@@ -7,11 +7,11 @@ from msrestazure import azure_exceptions
 
 from pdchaosazure.common import cleanse, config
 from pdchaosazure.common.compute import command, init_client
-from pdchaosazure.machine.constants import RES_TYPE_VM
-from pdchaosazure.common.resources.graph import fetch_resources
 
 __all__ = ["burn_io", "delete_machines", "fill_disk", "network_latency",
            "restart_machines", "stop_machines", "stress_cpu"]
+
+from pdchaosazure.machine.fetcher import fetch_machines
 
 from pdchaosazure.vmss.records import Records
 
@@ -32,8 +32,8 @@ def delete_machines(filter: str = None,
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(delete_machines.__name__, configuration, filter))
 
-    machines = __fetch_machines(filter, configuration, secrets)
-    client = __compute_mgmt_client(secrets, configuration)
+    machines = fetch_machines(filter, configuration, secrets)
+    client = init_client(secrets, configuration)
     machine_records = Records()
     for machine in machines:
         logger.debug("Deleting machine: {}".format(machine['name']))
@@ -62,8 +62,8 @@ def stop_machines(filter: str = None,
     """
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop_machines.__name__, configuration, filter))
 
-    machines = __fetch_machines(filter, configuration, secrets)
-    client = __compute_mgmt_client(secrets, configuration)
+    machines = fetch_machines(filter, configuration, secrets)
+    client = init_client(secrets, configuration)
 
     machine_records = Records()
     for machine in machines:
@@ -94,8 +94,8 @@ def restart_machines(filter: str = None,
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(
         restart_machines.__name__, configuration, filter))
 
-    machines = __fetch_machines(filter, configuration, secrets)
-    client = __compute_mgmt_client(secrets, configuration)
+    machines = fetch_machines(filter, configuration, secrets)
+    client = init_client(secrets, configuration)
     machine_records = Records()
     for machine in machines:
         logger.debug("Restarting machine: {}".format(machine['name']))
@@ -131,7 +131,7 @@ def stress_cpu(filter: str = None,
     logger.debug(
         "Starting stress_cpu: configuration='{}', filter='{}', duration='{}'".format(configuration, filter, duration))
 
-    machines = __fetch_machines(filter, configuration, secrets)
+    machines = fetch_machines(filter, configuration, secrets)
 
     machine_records = Records()
     for machine in machines:
@@ -145,7 +145,7 @@ def stress_cpu(filter: str = None,
             ]
         }
 
-        logger.debug("Executing operation '{}' on machine: '{}'".format(stress_cpu.__name__, machine['name']))
+        logger.debug("Executing operation '{}' on machine '{}'".format(stress_cpu.__name__, machine['name']))
         command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
@@ -179,7 +179,7 @@ def fill_disk(filter: str = None,
     logger.debug("Starting fill_disk: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
         configuration, filter, duration, size, path))
 
-    machines = __fetch_machines(filter, configuration, secrets)
+    machines = fetch_machines(filter, configuration, secrets)
 
     machine_records = Records()
     for machine in machines:
@@ -196,7 +196,7 @@ def fill_disk(filter: str = None,
             ]
         }
 
-        logger.debug("Executing operation '{}' on machine: '{}'".format(fill_disk.__name__, machine['name']))
+        logger.debug("Executing operation '{}' on machine '{}'".format(fill_disk.__name__, machine['name']))
         command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
@@ -230,7 +230,7 @@ def network_latency(filter: str = None,
         "Starting network_latency: configuration='{}', filter='{}', duration='{}', delay='{}', jitter='{}'".format(
             configuration, filter, duration, delay, jitter))
 
-    machines = __fetch_machines(filter, configuration, secrets)
+    machines = fetch_machines(filter, configuration, secrets)
 
     machine_records = Records()
     for machine in machines:
@@ -247,7 +247,7 @@ def network_latency(filter: str = None,
             ]
         }
 
-        logger.debug("Executing operation '{}' on machine: '{}'".format(network_latency.__name__, machine['name']))
+        logger.debug("Executing operation '{}' on machine '{}'".format(network_latency.__name__, machine['name']))
         command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
@@ -272,7 +272,7 @@ def burn_io(filter: str = None,
     logger.debug(
         "Starting burn_io: configuration='{}', filter='{}', duration='{}',".format(configuration, filter, duration))
 
-    machines = __fetch_machines(filter, configuration, secrets)
+    machines = fetch_machines(filter, configuration, secrets)
 
     machine_records = Records()
     for machine in machines:
@@ -286,24 +286,8 @@ def burn_io(filter: str = None,
             ]
         }
 
-        logger.debug("Executing operation '{}' on machine: '{}'".format(burn_io.__name__, machine['name']))
+        logger.debug("Executing operation '{}' on machine '{}'".format(burn_io.__name__, machine['name']))
         command.run(machine['resourceGroup'], machine, duration, parameters, secrets, configuration)
         machine_records.add(cleanse.machine(machine))
 
     return machine_records.output_as_dict('resources')
-
-
-###############################################################################
-# Private helper functions
-###############################################################################
-def __fetch_machines(filter, configuration, secrets) -> []:
-    machines = fetch_resources(filter, RES_TYPE_VM, secrets, configuration)
-    if not machines:
-        logger.warning("No virtual machines found")
-        raise FailedActivity("No virtual machines found")
-
-    return machines
-
-
-def __compute_mgmt_client(secrets, configuration):
-    return init_client(secrets, configuration)
