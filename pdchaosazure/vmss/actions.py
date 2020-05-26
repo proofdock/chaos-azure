@@ -20,8 +20,7 @@ def delete_instance(filter_vmss: str = None,
                     filter_instances: str = None,
                     configuration: Configuration = None,
                     secrets: Secrets = None):
-    """
-    Delete instances from the filtered scale sets either at random or by a defined instance filter.
+    """Delete instances from the VMSS.
 
     **Be aware**: Deleting a VMSS instance is an invasive action.
     You will not be able to recover the VMSS instance once you deleted it.
@@ -29,10 +28,11 @@ def delete_instance(filter_vmss: str = None,
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(delete_instance.__name__, configuration, filter_vmss))
@@ -68,16 +68,16 @@ def restart_instance(filter_vmss: str = None,
                      filter_instances: str = None,
                      configuration: Configuration = None,
                      secrets: Secrets = None):
-    """
-    Restart instances from the filtered scale sets either at random or by a defined instance filter.
+    """Restart instances from the VMSS.
 
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(restart_instance.__name__, configuration, filter_vmss))
@@ -113,16 +113,16 @@ def stop_instance(filter_vmss: str = None,
                   filter_instances: str = None,
                   configuration: Configuration = None,
                   secrets: Secrets = None):
-    """
-    Stops instances from the filtered scale sets either at random or by a defined instance filter.
+    """Stop instances from the VMSS.
 
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(stop_instance.__name__, configuration, filter_vmss))
@@ -157,16 +157,16 @@ def deallocate_instance(filter_vmss: str = None,
                         filter_instances: str = None,
                         configuration: Configuration = None,
                         secrets: Secrets = None):
-    """
-    Deallocate instances from the filtered scale sets either at random or by a defined instance filter.
+    """Deallocate instances from the VMSS.
 
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(deallocate_instance.__name__, configuration, filter_vmss))
@@ -203,16 +203,16 @@ def stress_cpu(filter_vmss: str = None,
                duration: int = 120,
                configuration: Configuration = None,
                secrets: Secrets = None):
-    """
-    CPU stressing for instances from the filtered scale sets either at random or by a defined instance filter.
+    """Stress CPU up to 100% for instances from the VMSS.
 
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates high CPU usage. Defaults to 120 seconds.
@@ -253,17 +253,16 @@ def burn_io(filter_vmss: str = None,
             duration: int = 60,
             configuration: Configuration = None,
             secrets: Secrets = None):
-    """
-    Simulate heavy disk I/O operations on instances from the filtered scale sets
-    either at random or by a defined instance filter.
+    """Simulate heavy disk I/O operations.
 
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
@@ -307,17 +306,16 @@ def fill_disk(filter_vmss: str = None,
               path: str = None,
               configuration: Configuration = None,
               secrets: Secrets = None):
-    """
-    Fill the disk with random data on instances from the filtered scale sets
-    either at random or by a defined instance filter.
+    """Fill the disk with random data.
 
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates random data on disk. Defaults to 120 seconds.
@@ -372,17 +370,16 @@ def network_latency(filter_vmss: str = None,
                     jitter: int = 50,
                     configuration: Configuration = None,
                     secrets: Secrets = None):
-    """
-    Increases the response time on instances from the filtered scale sets
-    either at random or by a defined instance filter.
+    """Increase the response time on instances.
 
     Parameters
     ----------
     filter_vmss : str, optional
-        Filter the virtual machine scale set(s).
+        Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
     filter_instances : str, optional
-        KQLL: Filter the instances of the selected virtual machine scale set(s).
+        KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
+        a random instance from your VMSS is selected.
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates network latency. Defaults to 60 seconds.

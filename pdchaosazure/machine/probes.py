@@ -11,16 +11,12 @@ __all__ = ["describe_machines", "count_machines"]
 def describe_machines(filter: str = None,
                       configuration: Configuration = None,
                       secrets: Secrets = None):
-    """
-    Describe Azure virtual machines.
+    """Describe Azure virtual machine instance(s).
 
     Parameters
     ----------
     filter : str
-        Filter the virtual machines. If the filter is omitted all machines in
-        the subscription will be selected for the probe.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+        Filter the virtual machine instance(s). If omitted a random instance from your subscription is selected.
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(describe_machines.__name__, configuration, filter))
@@ -33,15 +29,12 @@ def count_machines(filter: str = None,
                    configuration: Configuration = None,
                    secrets: Secrets = None) -> int:
     """
-    Return count of Azure virtual machines.
+    Return count of Azure virtual machine instance(s).
 
     Parameters
     ----------
     filter : str
-        Filter the virtual machines. If the filter is omitted all machines in
-        the subscription will be selected for the probe.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+        Filter the virtual machine instance(s). If omitted a random instance from your subscription is selected.
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(count_machines.__name__, configuration, filter))
