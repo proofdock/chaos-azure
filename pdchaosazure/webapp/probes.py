@@ -9,15 +9,12 @@ def describe_webapps(filter: str = None,
                      configuration: Configuration = None,
                      secrets: Secrets = None):
     """
-    Describe Azure web apps.
+    Describe web app instance(s).
 
     Parameters
     ----------
-    filter : str
-        Filter the web apps. If the filter is omitted all web apps in
-        the subscription will be selected for the probe.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+    filter : str, optional
+        Filter the web app instance(s).
     """
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(describe_webapps.__name__, configuration, filter))
@@ -29,15 +26,12 @@ def count_webapps(filter: str = None,
                   configuration: Configuration = None,
                   secrets: Secrets = None) -> int:
     """
-    Return count of Azure web apps.
+    Return count of web app instance(s).
 
     Parameters
     ----------
-    filter : str
-        Filter the web apps. If the filter is omitted all web apps in
-        the subscription will be selected for the probe.
-        Filtering example:
-        'where resourceGroup=="myresourcegroup" and name="myresourcename"'
+    filter : str, optional
+        Filter the web app instance(s).
     """
     logger.debug("Start {}: configuration='{}', filter='{}'".format(count_webapps.__name__, configuration, filter))
 
