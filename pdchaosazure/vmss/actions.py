@@ -46,6 +46,7 @@ def delete_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 try:
@@ -54,8 +55,14 @@ def delete_instance(filter_vmss: str = None,
                 except azure_exceptions.CloudError as e:
                     raise FailedActivity(e.message)
 
-                executor.submit(
-                    __long_poll, delete_instance.__name__, instance, poller, instances_records, configuration)
+                # collect future results
+                futures.append(
+                    executor.submit(__long_poll, delete_instance.__name__, instance, poller, configuration))
+
+            # wait for results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -90,16 +97,23 @@ def restart_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 try:
-                    poller = client.virtual_machine_scale_set_vms.restart(vmss['resourceGroup'], vmss['name'],
-                                                                          instance['instance_id'])
+                    poller = client.virtual_machine_scale_set_vms.restart(
+                        vmss['resourceGroup'], vmss['name'], instance['instance_id'])
                 except azure_exceptions.CloudError as e:
                     raise FailedActivity(e.message)
 
-                executor.submit(
-                    __long_poll, restart_instance.__name__, instance, poller, instances_records, configuration)
+                # collect future results
+                futures.append(
+                    executor.submit(__long_poll, restart_instance.__name__, instance, poller, configuration))
+
+            # wait for results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -134,6 +148,7 @@ def stop_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 try:
@@ -142,8 +157,14 @@ def stop_instance(filter_vmss: str = None,
                 except azure_exceptions.CloudError as e:
                     raise FailedActivity(e.message)
 
-                executor.submit(
-                    __long_poll, stop_instance.__name__, instance, poller, instances_records, configuration)
+                # collect future results
+                futures.append(
+                    executor.submit(__long_poll, stop_instance.__name__, instance, poller, configuration))
+
+            # wait for results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -178,18 +199,26 @@ def deallocate_instance(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 logger.debug("Deallocating instance: {}".format(instance['name']))
 
                 try:
-                    poller = client.virtual_machine_scale_set_vms.deallocate(vmss['resourceGroup'], vmss['name'],
-                                                                             instance['instance_id'])
+                    poller = client.virtual_machine_scale_set_vms.deallocate(
+                        vmss['resourceGroup'], vmss['name'], instance['instance_id'])
                 except azure_exceptions.CloudError as e:
                     raise FailedActivity(e.message)
 
-                executor.submit(
-                    __long_poll, deallocate_instance.__name__, instance, poller, instances_records, configuration)
+                # collect future results
+                futures.append(
+                    executor.submit(
+                        __long_poll, deallocate_instance.__name__, instance, poller, configuration))
+
+            # wait for results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -228,6 +257,7 @@ def stress_cpu(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 command_id, script_content = command.prepare(instance, 'cpu_stress_test')
@@ -239,9 +269,16 @@ def stress_cpu(filter_vmss: str = None,
                     ]
                 }
 
-                executor.submit(
-                    __long_poll_command, stress_cpu.__name__,
-                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
+                # collect future results
+                futures.append(
+                    executor.submit(
+                        __long_poll_command, stress_cpu.__name__, vmss['resourceGroup'], instance, duration, parameters,
+                        configuration, client))
+
+            # wait for future results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -280,6 +317,7 @@ def burn_io(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 command_id, script_content = command.prepare(instance, 'burn_io')
@@ -291,9 +329,16 @@ def burn_io(filter_vmss: str = None,
                     ]
                 }
 
-                executor.submit(
-                    __long_poll_command, burn_io.__name__,
-                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
+                # collect future results
+                futures.append(
+                    executor.submit(
+                        __long_poll_command, burn_io.__name__, vmss['resourceGroup'], instance, duration, parameters,
+                        configuration, client))
+
+            # wait for the results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -343,6 +388,7 @@ def fill_disk(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 command_id, script_content = command.prepare(instance, 'fill_disk')
@@ -358,9 +404,16 @@ def fill_disk(filter_vmss: str = None,
                     ]
                 }
 
-                executor.submit(
-                    __long_poll_command, fill_disk.__name__,
-                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
+                # collect the future results
+                futures.append(
+                    executor.submit(
+                        __long_poll_command, fill_disk.__name__, vmss['resourceGroup'], instance, duration, parameters,
+                        configuration, client))
+
+            # wait for the results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -409,6 +462,7 @@ def network_latency(filter_vmss: str = None,
         instances_records = Records()
         instances = fetch_instances(vmss, filter_instances, client)
 
+        futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 command_id, script_content = command.prepare(instance, 'network_latency')
@@ -422,12 +476,16 @@ def network_latency(filter_vmss: str = None,
                     ]
                 }
 
-                command.run(vmss['resourceGroup'], instance, duration, parameters, client)
-                instances_records.add(cleanse.vmss_instance(instance))
+                # collect the future results
+                futures.append(
+                    executor.submit(
+                        __long_poll_command, network_latency.__name__, vmss['resourceGroup'], instance, duration,
+                        parameters, configuration, client))
 
-                executor.submit(
-                    __long_poll_command, network_latency.__name__,
-                    vmss['resourceGroup'], instance, duration, parameters, instances_records, configuration, client)
+            # wait for the results
+            for future in concurrent.futures.as_completed(futures):
+                affected_instance = future.result()
+                instances_records.add(cleanse.vmss_instance(affected_instance))
 
         vmss['virtualMachines'] = instances_records.output()
         vmss_records.add(cleanse.vmss(vmss))
@@ -438,18 +496,20 @@ def network_latency(filter_vmss: str = None,
 ###########################
 #  PRIVATE HELPER FUNCTIONS
 ###########################
-def __long_poll(activity, instance, poller, records, configuration):
+def __long_poll(activity, instance, poller, configuration):
     logger.debug("Waiting for operation '{}' on instance '{}' to finish. Giving priority to other operations.".format(
         activity, instance['name']))
     poller.result(config.load_timeout(configuration))
-    records.add(cleanse.vmss_instance(instance))
     logger.debug("Finished operation '{}' on instance '{}'.".format(activity, instance['name']))
 
+    return instance
 
-def __long_poll_command(activity, group, instance, duration, parameters, records, configuration, client):
+
+def __long_poll_command(activity, group, instance, duration, parameters, configuration, client):
     logger.debug("Waiting for operation '{}' on instance '{}' to finish. Giving priority to other operations.".format(
         activity, instance['name']))
     timeout = config.load_timeout(configuration) + duration
     command.run(group, instance, timeout, parameters, client)
-    records.add(cleanse.vmss_instance(instance))
     logger.debug("Finished operation '{}' on instance '{}'.".format(activity, instance['name']))
+
+    return instance
