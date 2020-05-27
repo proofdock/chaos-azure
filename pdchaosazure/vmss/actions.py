@@ -422,7 +422,7 @@ def network_latency(filter_vmss: str = None,
                     ]
                 }
 
-                command.run(vmss['resourceGroup'], instance, duration, parameters, secrets, configuration)
+                command.run(vmss['resourceGroup'], instance, duration, parameters, client)
                 instances_records.add(cleanse.vmss_instance(instance))
 
                 executor.submit(
