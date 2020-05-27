@@ -1,6 +1,9 @@
 from unittest.mock import MagicMock, patch
 
+from azure.mgmt.compute import ComputeManagementClient
+
 import pdchaosazure
+from pdchaosazure.common import config
 from pdchaosazure.machine.actions import (burn_io, fill_disk, delete_machines, network_latency,
                                           restart_machines, stop_machines, stress_cpu)
 from tests.data import machine_provider, config_provider, secrets_provider
@@ -151,81 +154,95 @@ def test_restart_two_machines(init, fetch):
 
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_stress_cpu(mocked_command_run, mocked_command_prepare, fetch):
+def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'cpu_stress_test.sh'
 
     machine = machine_provider.default()
-    machines = [machine]
-    fetch.return_value = machines
+    fetch.return_value = [machine]
 
-    config = config_provider.provide_default_config()
+    mocked_client = MagicMock(spec=ComputeManagementClient)
+    mocked_init_client.return_value = mocked_client
+
+    configuration = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
+    timeout = config.load_timeout(configuration)
+    duration = 60
+
     # act
-    stress_cpu(filter="where name=='some_linux_machine'", duration=60, configuration=config, secrets=secrets)
+    stress_cpu(filter="where name=='some_linux_machine'", duration=duration, configuration=configuration,
+               secrets=secrets)
 
     # assert
-    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
+    fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
     mocked_command_prepare.assert_called_with(machine, 'cpu_stress_test')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 60,
+        machine['resourceGroup'], machine, duration + timeout,
         {
             'command_id': 'RunShellScript',
             'script': ['cpu_stress_test.sh'],
             'parameters': [
-                {'name': "duration", 'value': 60},
+                {'name': "duration", 'value': duration},
             ]
         },
-        secrets, config
+        mocked_client
     )
 
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_fill_disk(mocked_command_run, mocked_command_prepare_path,
-                   mocked_command_prepare, fetch):
+def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_command_prepare,
+                   mocked_init_client, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'fill_disk.sh'
     mocked_command_prepare_path.return_value = '/root/burn/hard'
 
     machine = machine_provider.default()
-    machines = [machine]
-    fetch.return_value = machines
+    fetch.return_value = [machine]
 
-    config = config_provider.provide_default_config()
+    mocked_client = MagicMock(spec=ComputeManagementClient)
+    mocked_init_client.return_value = mocked_client
+
+    configuration = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
+    duration = 60
+    timeout = config.load_timeout(configuration) + duration
+
     # act
-    fill_disk(filter="where name=='some_linux_machine'", duration=60, size=1000, path='/root/burn/hard',
-              configuration=config, secrets=secrets)
+    fill_disk(filter="where name=='some_linux_machine'", duration=duration, size=1000, path='/root/burn/hard',
+              configuration=configuration, secrets=secrets)
 
     # assert
-    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
+    fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
     mocked_command_prepare.assert_called_with(machine, 'fill_disk')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 60,
+        machine['resourceGroup'], machine, timeout,
         {
             'command_id': 'RunShellScript',
             'script': ['fill_disk.sh'],
             'parameters': [
-                {'name': "duration", 'value': 60},
+                {'name': "duration", 'value': duration},
                 {'name': "size", 'value': 1000},
                 {'name': "path", 'value': '/root/burn/hard'}
             ]
         },
-        secrets, config
+        mocked_client
     )
 
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_network_latency(mocked_command_run, mocked_command_prepare, fetch):
+def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'network_latency.sh'
 
@@ -233,35 +250,43 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, fetch):
     machines = [machine]
     fetch.return_value = machines
 
-    config = config_provider.provide_default_config()
+    mocked_client = MagicMock(spec=ComputeManagementClient)
+    mocked_init_client.return_value = mocked_client
+
+    configuration = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
+    duration = 60
+    timeout = config.load_timeout(configuration) + duration
+
     # act
-    network_latency(filter="where name=='some_linux_machine'", duration=60, delay=200, jitter=50, configuration=config,
-                    secrets=secrets)
+    network_latency(
+        filter="where name=='some_linux_machine'", duration=duration, delay=200, jitter=50,
+        configuration=configuration, secrets=secrets)
 
     # assert
-    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
+    fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
     mocked_command_prepare.assert_called_with(machine, 'network_latency')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 60,
+        machine['resourceGroup'], machine, timeout,
         {
             'command_id': 'RunShellScript',
             'script': ['network_latency.sh'],
             'parameters': [
-                {'name': "duration", 'value': 60},
+                {'name': "duration", 'value': duration},
                 {'name': "delay", 'value': 200},
                 {'name': "jitter", 'value': 50}
             ]
         },
-        secrets, config
+        mocked_client
     )
 
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.machine.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_burn_io(mocked_command_run, mocked_command_prepare, fetch):
+def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
     # arrange mocks
     mocked_command_prepare.return_value = 'RunShellScript', 'burn_io.sh'
 
@@ -269,23 +294,29 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, fetch):
     machines = [machine]
     fetch.return_value = machines
 
-    config = config_provider.provide_default_config()
+    configuration = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
+    mocked_client = MagicMock(spec=ComputeManagementClient)
+    mocked_init_client.return_value = mocked_client
+
+    duration = 60
+    timeout = config.load_timeout(configuration) + duration
+
     # act
-    burn_io(filter="where name=='some_linux_machine'", duration=60, configuration=config, secrets=secrets)
+    burn_io(filter="where name=='some_linux_machine'", duration=duration, configuration=configuration, secrets=secrets)
 
     # assert
-    fetch.assert_called_with("where name=='some_linux_machine'", config, secrets)
+    fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
     mocked_command_prepare.assert_called_with(machine, 'burn_io')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, 60,
+        machine['resourceGroup'], machine, timeout,
         {
             'command_id': 'RunShellScript',
             'script': ['burn_io.sh'],
             'parameters': [
-                {'name': 'duration', 'value': 60}
+                {'name': 'duration', 'value': duration}
             ]
         },
-        secrets, config
+        mocked_client
     )

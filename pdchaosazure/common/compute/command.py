@@ -5,8 +5,6 @@ from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
 from msrestazure import azure_exceptions
 
-from pdchaosazure import load_secrets, load_subscription_id, auth
-from pdchaosazure.common import config
 from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
 
@@ -42,18 +40,7 @@ def prepare(compute: dict, script: str):
         return command_id, script_content
 
 
-def run(resource_group: str, compute: dict, duration: int, parameters: dict,
-        secrets, configuration):
-    secrets1 = load_secrets(secrets)
-    configuration1 = load_subscription_id(configuration)
-    with auth(secrets1) as authentication:
-        base_url = secrets1.get('cloud').endpoints.resource_manager
-        client1 = ComputeManagementClient(
-            credentials=authentication,
-            subscription_id=configuration1.get('subscription_id'),
-            base_url=base_url)
-
-        client = client1
+def run(resource_group: str, compute: dict, timeout: int, parameters: dict, client: ComputeManagementClient):
     compute_type = compute.get('type').lower()
 
     try:
@@ -73,7 +60,6 @@ def run(resource_group: str, compute: dict, duration: int, parameters: dict,
     except azure_exceptions.CloudError as e:
         raise FailedActivity(e.message)
 
-    timeout = config.load_timeout(configuration) + duration
     result = poller.result(timeout)  # Blocking till executed
     if result and result.value:
         logger.debug(result.value[0].message)  # stdout/stderr
