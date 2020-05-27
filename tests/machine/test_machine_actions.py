@@ -8,25 +8,6 @@ from pdchaosazure.machine.actions import (burn_io, fill_disk, delete_machines, n
                                           restart_machines, stop_machines, stress_cpu)
 from tests.data import machine_provider, config_provider, secrets_provider
 
-CONFIG = {
-    "azure": {
-        "subscription_id": "***REMOVED***"
-    }
-}
-
-SECRETS = {
-    "client_id": "***REMOVED***",
-    "client_secret": "***REMOVED***",
-    "tenant_id": "***REMOVED***"
-}
-
-SECRETS_CHINA = {
-    "client_id": "***REMOVED***",
-    "client_secret": "***REMOVED***",
-    "tenant_id": "***REMOVED***",
-    "azure_cloud": "AZURE_CHINA_CLOUD"
-}
-
 MACHINE_ALPHA = {
     'name': 'VirtualMachineAlpha',
     'resourceGroup': 'group'}
@@ -47,29 +28,15 @@ def test_delete_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
 
-    machines = [MACHINE_ALPHA]
-    fetch.return_value = machines
+    fetch.return_value = [MACHINE_ALPHA]
+
+    configuration = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 1"
-    delete_machines(f, CONFIG, SECRETS)
+    delete_machines(f, configuration, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
-    assert client.virtual_machines.delete.call_count == 1
-
-
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
-def test_delete_one_machine_china(init, fetch):
-    client = MagicMock()
-    init.return_value = client
-
-    machines = [MACHINE_ALPHA]
-    fetch.return_value = machines
-
-    f = "where resourceGroup=='myresourcegroup' | sample 1"
-    delete_machines(f, CONFIG, SECRETS_CHINA)
-
-    fetch.assert_called_with(f, CONFIG, SECRETS_CHINA)
+    fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.delete.call_count == 1
 
 
@@ -79,13 +46,15 @@ def test_delete_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
 
-    machines = [MACHINE_ALPHA, MACHINE_BETA]
-    fetch.return_value = machines
+    fetch.return_value = [MACHINE_ALPHA, MACHINE_BETA]
+
+    configuration = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 2"
-    delete_machines(f, CONFIG, SECRETS)
+    delete_machines(f, configuration, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
+    fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.delete.call_count == 2
 
 
@@ -98,10 +67,13 @@ def test_stop_one_machine(init, fetch):
     machines = [MACHINE_ALPHA]
     fetch.return_value = machines
 
-    f = "where resourceGroup=='myresourcegroup' | sample 1"
-    stop_machines(f, CONFIG, SECRETS)
+    configuration = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_via_service_principal()
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
+    f = "where resourceGroup=='myresourcegroup' | sample 1"
+    stop_machines(f, configuration, secrets)
+
+    fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.power_off.call_count == 1
 
 
@@ -111,13 +83,15 @@ def test_stop_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
 
-    machines = [MACHINE_ALPHA, MACHINE_BETA]
-    fetch.return_value = machines
+    fetch.return_value = [MACHINE_ALPHA, MACHINE_BETA]
+
+    configuration = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 2"
-    stop_machines(f, CONFIG, SECRETS)
+    stop_machines(f, configuration, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
+    fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.power_off.call_count == 2
 
 
@@ -127,13 +101,15 @@ def test_restart_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
 
-    machines = [MACHINE_ALPHA]
-    fetch.return_value = machines
+    fetch.return_value = [MACHINE_ALPHA]
+
+    configuration = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 1"
-    restart_machines(f, CONFIG, SECRETS)
+    restart_machines(f, configuration, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
+    fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.restart.call_count == 1
 
 
@@ -143,13 +119,15 @@ def test_restart_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
 
-    machines = [MACHINE_ALPHA, MACHINE_BETA]
-    fetch.return_value = machines
+    fetch.return_value = [MACHINE_ALPHA, MACHINE_BETA]
+
+    configuration = config_provider.provide_default_config()
+    secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 2"
-    restart_machines(f, CONFIG, SECRETS)
+    restart_machines(f, configuration, secrets)
 
-    fetch.assert_called_with(f, CONFIG, SECRETS)
+    fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.restart.call_count == 2
 
 

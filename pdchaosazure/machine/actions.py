@@ -37,6 +37,7 @@ def delete_machines(filter: str = None,
     client = init_client(secrets, configuration)
     machine_records = Records()
 
+    futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             logger.debug("Deleting machine: {}".format(machine['name']))
@@ -46,7 +47,13 @@ def delete_machines(filter: str = None,
             except azure_exceptions.CloudError as e:
                 raise FailedActivity(e.message)
 
-            executor.submit(__long_poll, machine, poller, machine_records, config)
+            # collect future results
+            futures.append(executor.submit(__long_poll, delete_machines.__name__, machine, poller, configuration))
+
+        # wait for results
+        for future in concurrent.futures.as_completed(futures):
+            affected_machine = future.result()
+            machine_records.add(cleanse.machine(affected_machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -68,6 +75,7 @@ def stop_machines(filter: str = None,
 
     machine_records = Records()
 
+    futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             logger.debug("Stopping machine '{}'".format(machine['name']))
@@ -77,7 +85,13 @@ def stop_machines(filter: str = None,
             except azure_exceptions.CloudError as e:
                 raise FailedActivity(e.message)
 
-            executor.submit(__long_poll, machine, poller, machine_records, config)
+            # collect future results
+            futures.append(executor.submit(__long_poll, stop_machines.__name__, machine, poller, configuration))
+
+        # wait for results
+        for future in concurrent.futures.as_completed(futures):
+            affected_machine = future.result()
+            machine_records.add(cleanse.machine(affected_machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -99,6 +113,7 @@ def restart_machines(filter: str = None,
     client = init_client(secrets, configuration)
     machine_records = Records()
 
+    futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             logger.debug("Restarting machine: {}".format(machine['name']))
@@ -108,7 +123,13 @@ def restart_machines(filter: str = None,
             except azure_exceptions.CloudError as e:
                 raise FailedActivity(e.message)
 
-            executor.submit(__long_poll, machine, poller, machine_records, config)
+            # collect future results
+            futures.append(executor.submit(__long_poll, restart_machines.__name__, machine, poller, configuration))
+
+        # wait for results
+        for future in concurrent.futures.as_completed(futures):
+            affected_machine = future.result()
+            machine_records.add(cleanse.machine(affected_machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -137,6 +158,7 @@ def stress_cpu(filter: str = None,
     client = init_client(secrets, configuration)
 
     machine_records = Records()
+    futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             command_id, script_content = command.prepare(machine, 'cpu_stress_test')
@@ -148,9 +170,15 @@ def stress_cpu(filter: str = None,
                 ]
             }
 
-            executor.submit(
-                __long_poll_command,
-                stress_cpu.__name__, machine, duration, parameters, machine_records, configuration, client)
+            # collect future results
+            futures.append(
+                executor.submit(
+                    __long_poll_command, stress_cpu.__name__, machine, duration, parameters, configuration, client))
+
+        # wait for results
+        for future in concurrent.futures.as_completed(futures):
+            affected_machine = future.result()
+            machine_records.add(cleanse.machine(affected_machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -187,6 +215,7 @@ def fill_disk(filter: str = None,
 
     machine_records = Records()
 
+    futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             command_id, script_content = command.prepare(machine, 'fill_disk')
@@ -201,9 +230,15 @@ def fill_disk(filter: str = None,
                 ]
             }
 
-            executor.submit(
-                __long_poll_command,
-                fill_disk.__name__, machine, duration, parameters, machine_records, configuration, client)
+            # collect future results
+            futures.append(
+                executor.submit(
+                    __long_poll_command, fill_disk.__name__, machine, duration, parameters, configuration, client))
+
+        # wait for results
+        for future in concurrent.futures.as_completed(futures):
+            affected_machine = future.result()
+            machine_records.add(cleanse.machine(affected_machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -240,6 +275,7 @@ def network_latency(filter: str = None,
 
     machine_records = Records()
 
+    futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             command_id, script_content = command.prepare(machine, 'network_latency')
@@ -254,9 +290,16 @@ def network_latency(filter: str = None,
                 ]
             }
 
-            executor.submit(
-                __long_poll_command,
-                network_latency.__name__, machine, duration, parameters, machine_records, configuration, client)
+            # collect future results
+            futures.append(
+                executor.submit(
+                    __long_poll_command, network_latency.__name__, machine, duration, parameters, configuration,
+                    client))
+
+        # wait for results
+        for future in concurrent.futures.as_completed(futures):
+            affected_machine = future.result()
+            machine_records.add(cleanse.machine(affected_machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -285,6 +328,7 @@ def burn_io(filter: str = None,
 
     machine_records = Records()
 
+    futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             command_id, script_content = command.prepare(machine, 'burn_io')
@@ -296,9 +340,15 @@ def burn_io(filter: str = None,
                 ]
             }
 
-            executor.submit(
-                __long_poll_command,
-                burn_io.__name__, machine, duration, parameters, machine_records, configuration, client)
+            # collect future results
+            futures.append(
+                executor.submit(
+                    __long_poll_command, burn_io.__name__, machine, duration, parameters, configuration, client))
+
+        # wait for results
+        for future in concurrent.futures.as_completed(futures):
+            affected_machine = future.result()
+            machine_records.add(cleanse.machine(affected_machine))
 
     return machine_records.output_as_dict('resources')
 
@@ -306,18 +356,20 @@ def burn_io(filter: str = None,
 ###########################
 #  PRIVATE HELPER FUNCTIONS
 ###########################
-def __long_poll(activity, machine, poller, records, configuration):
+def __long_poll(activity, machine, poller, configuration):
     logger.debug("Waiting for operation '{}' on machine '{}' to finish. Giving priority to other operations.".format(
         activity, machine['name']))
     poller.result(config.load_timeout(configuration))
-    records.add(cleanse.machine(machine))
     logger.debug("Finished operation '{}' on machine '{}'.".format(activity, machine['name']))
 
+    return machine
 
-def __long_poll_command(activity, machine, duration, parameters, records, configuration, client):
+
+def __long_poll_command(activity, machine, duration, parameters, configuration, client):
     logger.debug("Waiting for operation '{}' on machine '{}' to finish. Giving priority to other operations.".format(
         activity, machine['name']))
     timeout = config.load_timeout(configuration) + duration
     command.run(machine['resourceGroup'], machine, timeout, parameters, client)
-    records.add(cleanse.machine(machine))
     logger.debug("Finished operation '{}' on machine '{}'.".format(activity, machine['name']))
+
+    return machine
