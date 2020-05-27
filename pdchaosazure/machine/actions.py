@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import concurrent
+import concurrent.futures
 
 from chaoslib.exceptions import FailedActivity
 from chaoslib.types import Configuration, Secrets
