@@ -5,8 +5,6 @@ from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
 from msrestazure import azure_exceptions
 
-from pdchaosazure.common import config
-from pdchaosazure.common.compute import init_client
 from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
 
