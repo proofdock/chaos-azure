@@ -4,6 +4,7 @@ from azure.mgmt.compute import ComputeManagementClient
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
 from msrestazure import azure_exceptions
+from pdchaoskit import scripts
 
 from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
@@ -21,7 +22,26 @@ def prepare_path(machine: dict, path: str):
     return result
 
 
-def prepare(compute: dict, script: str):
+def prepare(compute: dict, script_id: str):
+    """Prepare the script
+    :param compute: The instance to be attacked.
+    :param script_id: The script's filename without the filename ending. Is named after the activity name.
+    :return: A tuple of the Command Id and the script content
+    """
+    os_type = __get_os_type(compute)
+
+    if os_type == OS_LINUX:
+        command_id = 'RunShellScript'
+        script_name = "{}.sh".format(script_id)
+    else:
+        command_id = 'RunPowerShellScript'
+        script_name = "{}.ps1".format(script_id)
+
+    script_content = scripts.get_content(script_name)
+    return command_id, script_content
+
+
+def prepare__old(compute: dict, script: str):
     os_type = __get_os_type(compute)
     if os_type == OS_LINUX:
         command_id = 'RunShellScript'
@@ -33,8 +53,7 @@ def prepare(compute: dict, script: str):
         command_id = 'RunPowerShellScript'
         script_name = "{}.ps1".format(script)
 
-    file_path = os.path.join(
-        os.path.dirname(__file__), "../scripts", script_name)
+    file_path = os.path.join(os.path.dirname(__file__), "../scripts", script_name)
     with open(file_path) as file_path:
         script_content = file_path.read()
         return command_id, script_content

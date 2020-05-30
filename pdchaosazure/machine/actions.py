@@ -136,6 +136,7 @@ def restart_machines(filter: str = None,
 
 def stress_cpu(filter: str = None,
                duration: int = 120,
+               number_of_cores: int = 0,
                configuration: Configuration = None,
                secrets: Secrets = None):
     """Stress CPU up to 100% at virtual machines.
@@ -146,13 +147,17 @@ def stress_cpu(filter: str = None,
         Filter the virtual machine instance(s). If omitted a random instance from your subscription is selected.
 
     duration : int, optional
-        Duration of the stress test (in seconds) that generates high CPU usage.
-        Defaults to 120 seconds.
+        Duration of the stress test (in seconds) that generates high CPU usage. Defaults to 120 seconds.
+
+    number_of_cores : int, optional
+        Number of cores to be stressed. 0 is the default and will stress all available cores.
     """
+
+    operation_name = stress_cpu.__name__
 
     logger.debug(
         "Starting {}: configuration='{}', filter='{}', duration='{}'".format(
-            stress_cpu.__name__, configuration, filter, duration))
+            operation_name, configuration, filter, duration))
 
     machines = fetch_machines(filter, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -161,19 +166,20 @@ def stress_cpu(filter: str = None,
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
-            command_id, script_content = command.prepare(machine, 'cpu_stress_test')
+            command_id, script_content = command.prepare(machine, operation_name)
             parameters = {
                 'command_id': command_id,
                 'script': [script_content],
                 'parameters': [
-                    {'name': "duration", 'value': duration}
+                    {'name': "input_duration", 'value': duration},
+                    {'name': "input_number_of_cores", 'value': number_of_cores}
                 ]
             }
 
             # collect future results
             futures.append(
                 executor.submit(
-                    __long_poll_command, stress_cpu.__name__, machine, duration, parameters, configuration, client))
+                    __long_poll_command, operation_name, machine, duration, parameters, configuration, client))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -218,7 +224,7 @@ def fill_disk(filter: str = None,
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
-            command_id, script_content = command.prepare(machine, 'fill_disk')
+            command_id, script_content = command.prepare__old(machine, 'fill_disk')
             fill_path = command.prepare_path(machine, path)
             parameters = {
                 'command_id': command_id,
@@ -278,7 +284,7 @@ def network_latency(filter: str = None,
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
-            command_id, script_content = command.prepare(machine, 'network_latency')
+            command_id, script_content = command.prepare__old(machine, 'network_latency')
             logger.debug("Script content: {}".format(script_content))
             parameters = {
                 'command_id': command_id,
@@ -331,7 +337,7 @@ def burn_io(filter: str = None,
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
-            command_id, script_content = command.prepare(machine, 'burn_io')
+            command_id, script_content = command.prepare__old(machine, 'burn_io')
             parameters = {
                 'command_id': command_id,
                 'script': [script_content],
