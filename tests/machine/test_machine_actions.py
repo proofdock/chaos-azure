@@ -151,12 +151,10 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
 
     timeout = config.load_timeout(configuration)
     duration = 60
-    number_of_cores = 1
 
     # act
     stress_cpu(
-        filter="where name=='some_linux_machine'", duration=duration, number_of_cores=number_of_cores,
-        configuration=configuration, secrets=secrets)
+        filter="where name=='some_linux_machine'", duration=duration, configuration=configuration, secrets=secrets)
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
@@ -167,8 +165,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
             'command_id': 'RunShellScript',
             'script': ['{}.sh'.format(operation_name)],
             'parameters': [
-                {'name': "input_duration", 'value': duration},
-                {'name': "input_number_of_cores", 'value': number_of_cores},
+                {'name': "input_duration", 'value': duration}
             ]
         },
         mocked_client

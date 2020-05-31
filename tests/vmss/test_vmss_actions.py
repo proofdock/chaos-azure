@@ -97,7 +97,6 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     duration = 60
-    number_of_cores = 1
     timeout = config.load_timeout(configuration) + duration
 
     client = MockComputeManagementClient()
@@ -105,8 +104,8 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
 
     # act
     stress_cpu(
-        filter_vmss="where name=='some_random_instance'", duration=duration, number_of_cores=number_of_cores,
-        configuration=configuration, secrets=secrets)
+        filter_vmss="where name=='some_random_instance'", duration=duration, configuration=configuration,
+        secrets=secrets)
 
     # assert
     mocked_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
@@ -118,8 +117,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
             'command_id': 'RunShellScript',
             'script': ['{}.sh'.format(operation_name)],
             'parameters': [
-                {'name': "input_duration", 'value': duration},
-                {'name': "input_number_of_cores", 'value': number_of_cores}
+                {'name': "input_duration", 'value': duration}
             ]
         },
         client

@@ -136,7 +136,6 @@ def restart_machines(filter: str = None,
 
 def stress_cpu(filter: str = None,
                duration: int = 120,
-               number_of_cores: int = 0,
                configuration: Configuration = None,
                secrets: Secrets = None):
     """Stress CPU up to 100% at virtual machines.
@@ -148,9 +147,6 @@ def stress_cpu(filter: str = None,
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates high CPU usage. Defaults to 120 seconds.
-
-    number_of_cores : int, optional
-        Number of cores to be stressed. 0 is the default and will stress all available cores.
     """
 
     operation_name = stress_cpu.__name__
@@ -171,8 +167,7 @@ def stress_cpu(filter: str = None,
                 'command_id': command_id,
                 'script': [script_content],
                 'parameters': [
-                    {'name': "input_duration", 'value': duration},
-                    {'name': "input_number_of_cores", 'value': number_of_cores}
+                    {'name': "input_duration", 'value': duration}
                 ]
             }
 
