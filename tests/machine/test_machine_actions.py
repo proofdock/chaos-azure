@@ -137,7 +137,8 @@ def test_restart_two_machines(init, fetch):
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'cpu_stress_test.sh'
+    operation_name = stress_cpu.__name__
+    mocked_command_prepare.return_value = 'RunShellScript', '{}.sh'.format(operation_name)
 
     machine = machine_provider.default()
     fetch.return_value = [machine]
@@ -152,19 +153,19 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
     duration = 60
 
     # act
-    stress_cpu(filter="where name=='some_linux_machine'", duration=duration, configuration=configuration,
-               secrets=secrets)
+    stress_cpu(
+        filter="where name=='some_linux_machine'", duration=duration, configuration=configuration, secrets=secrets)
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_prepare.assert_called_with(machine, 'cpu_stress_test')
+    mocked_command_prepare.assert_called_with(machine, operation_name)
     mocked_command_run.assert_called_with(
         machine['resourceGroup'], machine, duration + timeout,
         {
             'command_id': 'RunShellScript',
-            'script': ['cpu_stress_test.sh'],
+            'script': ['{}.sh'.format(operation_name)],
             'parameters': [
-                {'name': "duration", 'value': duration},
+                {'name': "input_duration", 'value': duration}
             ]
         },
         mocked_client
@@ -173,7 +174,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch('pdchaosazure.machine.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
+@patch.object(pdchaosazure.common.compute.command, 'prepare__old', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_command_prepare,
@@ -218,7 +219,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_comma
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch('pdchaosazure.machine.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
+@patch.object(pdchaosazure.common.compute.command, 'prepare__old', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
     # arrange mocks
@@ -262,7 +263,7 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch('pdchaosazure.machine.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
+@patch.object(pdchaosazure.common.compute.command, 'prepare__old', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
     # arrange mocks

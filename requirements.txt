@@ -1,8 +1,7 @@
 azure-mgmt-compute
 azure-mgmt-resourcegraph
 azure-mgmt-web
-chaostoolkit-lib>==1.1.2
 dateparser
 jmespath
-logzero
+proofdock-chaos-kit
 requests

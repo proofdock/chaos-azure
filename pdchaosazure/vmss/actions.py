@@ -245,8 +245,11 @@ def stress_cpu(filter_vmss: str = None,
     duration : int, optional
         Duration of the stress test (in seconds) that generates high CPU usage. Defaults to 120 seconds.
     """
+
+    operation_name = stress_cpu.__name__
+
     logger.debug("Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', duration='{}'".format(
-        stress_cpu.__name__, configuration, filter_vmss, filter_instances, duration))
+        operation_name, configuration, filter_vmss, filter_instances, duration))
 
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -260,19 +263,19 @@ def stress_cpu(filter_vmss: str = None,
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
-                command_id, script_content = command.prepare(instance, 'cpu_stress_test')
+                command_id, script_content = command.prepare(instance, operation_name)
                 parameters = {
                     'command_id': command_id,
                     'script': [script_content],
                     'parameters': [
-                        {'name': "duration", 'value': duration}
+                        {'name': "input_duration", 'value': duration}
                     ]
                 }
 
                 # collect future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, stress_cpu.__name__, vmss['resourceGroup'], instance, duration, parameters,
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
                         configuration, client))
 
             # wait for future results
@@ -320,7 +323,7 @@ def burn_io(filter_vmss: str = None,
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
-                command_id, script_content = command.prepare(instance, 'burn_io')
+                command_id, script_content = command.prepare__old(instance, 'burn_io')
                 parameters = {
                     'command_id': command_id,
                     'script': [script_content],
@@ -391,7 +394,7 @@ def fill_disk(filter_vmss: str = None,
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
-                command_id, script_content = command.prepare(instance, 'fill_disk')
+                command_id, script_content = command.prepare__old(instance, 'fill_disk')
                 fill_path = command.prepare_path(instance, path)
 
                 parameters = {
@@ -465,7 +468,7 @@ def network_latency(filter_vmss: str = None,
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
-                command_id, script_content = command.prepare(instance, 'network_latency')
+                command_id, script_content = command.prepare__old(instance, 'network_latency')
                 parameters = {
                     'command_id': command_id,
                     'script': [script_content],
