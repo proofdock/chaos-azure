@@ -127,7 +127,7 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare__old', autospec=True)
+@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init_client,
                          mocked_fetch_instances, mocked_fetch_vmss):
@@ -162,9 +162,9 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init
             'command_id': 'RunShellScript',
             'script': ['network_latency.sh'],
             'parameters': [
-                {'name': "duration", 'value': duration},
-                {'name': "delay", 'value': 200},
-                {'name': "jitter", 'value': 50}
+                {'name': "input_duration", 'value': duration},
+                {'name': "input_delay", 'value': 200},
+                {'name': "input_jitter", 'value': 50}
             ]
         },
         mocked_client
@@ -174,7 +174,7 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare__old', autospec=True)
+@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch_instances, fetch_vmss):
     # arrange mocks
@@ -210,7 +210,9 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client,
             'command_id': 'RunShellScript',
             'script': ['burn_io.sh'],
             'parameters': [
-                {'name': 'duration', 'value': duration}
+                {'name': 'input_duration', 'value': duration},
+                {'name': 'input_size', 'value': 30},
+                {'name': 'input_path', 'value': '/root/burn'}
             ]
         },
         mocked_client
@@ -221,7 +223,7 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client,
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare__old', autospec=True)
+@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_prepare_path,
                    mocked_init_client, fetch_instances, fetch_vmss):
@@ -257,9 +259,9 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_pr
             'command_id': 'RunShellScript',
             'script': ['fill_disk.sh'],
             'parameters': [
-                {'name': "duration", 'value': duration},
-                {'name': "size", 'value': 1000},
-                {'name': "path", 'value': '/root/burn/hard'}
+                {'name': "input_duration", 'value': duration},
+                {'name': "input_size", 'value': 1000},
+                {'name': "input_path", 'value': '/root/burn/hard'}
             ]
         },
         mocked_client
@@ -270,7 +272,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_pr
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare__old', autospec=True)
+@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', side_effect=FailedActivity("Activity monkey has failed"))
 def test_unhappily_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_prepare_path,
                              mocked_init_client, fetch_instances, fetch_vmss):

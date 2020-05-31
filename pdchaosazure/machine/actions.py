@@ -201,11 +201,11 @@ def fill_disk(filter: str = None,
         Lifetime of the file created. Defaults to 120 seconds.
 
     size : int
-        Size of the file created on the disk. Defaults to 1GB.
+        Size of the file in megabytes created on the disk. Defaults to 1000 MB.
 
     path : str, optional
         The absolute path to write the fill file into.
-        Defaults: ``C:\burn`` for Windows clients, ``/root/burn`` for Linux clients.
+        Defaults to ``C:\burn`` for Windows clients and ``/root/burn`` for Linux clients.
     """
 
     logger.debug("Starting {}: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
@@ -219,15 +219,15 @@ def fill_disk(filter: str = None,
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
-            command_id, script_content = command.prepare__old(machine, 'fill_disk')
+            command_id, script_content = command.prepare(machine, 'fill_disk')
             fill_path = command.prepare_path(machine, path)
             parameters = {
                 'command_id': command_id,
                 'script': [script_content],
                 'parameters': [
-                    {'name': "duration", 'value': duration},
-                    {'name': "size", 'value': size},
-                    {'name': "path", 'value': fill_path}
+                    {'name': "input_duration", 'value': duration},
+                    {'name': "input_size", 'value': size},
+                    {'name': "input_path", 'value': fill_path}
                 ]
             }
 
@@ -279,15 +279,15 @@ def network_latency(filter: str = None,
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
-            command_id, script_content = command.prepare__old(machine, 'network_latency')
+            command_id, script_content = command.prepare(machine, 'network_latency')
             logger.debug("Script content: {}".format(script_content))
             parameters = {
                 'command_id': command_id,
                 'script': [script_content],
                 'parameters': [
-                    {'name': "duration", 'value': duration},
-                    {'name': "delay", 'value': delay},
-                    {'name': "jitter", 'value': jitter}
+                    {'name': "input_duration", 'value': duration},
+                    {'name': "input_delay", 'value': delay},
+                    {'name': "input_jitter", 'value': jitter}
                 ]
             }
 
@@ -307,6 +307,8 @@ def network_latency(filter: str = None,
 
 def burn_io(filter: str = None,
             duration: int = 60,
+            size: int = 30,
+            path: str = None,
             configuration: Configuration = None,
             secrets: Secrets = None):
     """Simulate heavy disk I/O operations.
@@ -318,6 +320,13 @@ def burn_io(filter: str = None,
 
     duration : int, optional
         How long the burn lasts. Defaults to 60 seconds.
+
+    size : int
+        Size of the file in megabytes that is written to. Defaults to 30 MB.
+
+    path : str, optional
+        The absolute path to write the stress file into. Defaults to ``C:\burn`` for Windows
+        clients and ``/root/burn`` for Linux clients.
     """
 
     logger.debug(
@@ -332,12 +341,15 @@ def burn_io(filter: str = None,
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
-            command_id, script_content = command.prepare__old(machine, 'burn_io')
+            command_id, script_content = command.prepare(machine, 'burn_io')
+            fill_path = command.prepare_path(machine, path)
             parameters = {
                 'command_id': command_id,
                 'script': [script_content],
                 'parameters': [
-                    {'name': "duration", 'value': duration}
+                    {'name': "input_duration", 'value': duration},
+                    {'name': "input_size", 'value': size},
+                    {'name': "input_path", 'value': fill_path}
                 ]
             }
 
