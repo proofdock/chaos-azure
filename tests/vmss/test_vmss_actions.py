@@ -164,7 +164,8 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init
             'parameters': [
                 {'name': "input_duration", 'value': duration},
                 {'name': "input_delay", 'value': 200},
-                {'name': "input_jitter", 'value': 50}
+                {'name': "input_jitter", 'value': 50},
+                {'name': "input_network_interface", 'value': "eth0"}
             ]
         },
         mocked_client
