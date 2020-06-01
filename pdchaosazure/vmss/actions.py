@@ -444,6 +444,8 @@ def network_latency(filter_vmss: str = None,
                     secrets: Secrets = None):
     """Increase the response time on instances.
 
+    **Please note**: This action is available only for Linux-based systems.
+
     Parameters
     ----------
     filter_vmss : str, optional

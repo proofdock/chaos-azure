@@ -253,6 +253,8 @@ def network_latency(filter: str = None,
                     secrets: Secrets = None):
     """Increases the response time of the virtual machine.
 
+    **Please note**: This action is available only for Linux-based systems.
+
     Parameters
     ----------
     filter : str, optional
