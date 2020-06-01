@@ -1,11 +1,16 @@
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM, RES_TYPE_VMSS
 
 
-def provide_instance():
+def provide_instance(os_type: str = 'Linux'):
     return {
         'name': 'chaos-pool_0',
         'instance_id': '0',
         'type': RES_TYPE_VMSS_VM,
+        'storage_profile': {
+            'os_disk': {
+                'os_type': os_type
+            }
+        }
     }
 
 

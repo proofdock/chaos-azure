@@ -292,6 +292,7 @@ def stress_cpu(filter_vmss: str = None,
 def burn_io(filter_vmss: str = None,
             filter_instances: str = None,
             duration: int = 60,
+            path: str = None,
             configuration: Configuration = None,
             secrets: Secrets = None):
     """Simulate heavy disk I/O operations.
@@ -307,10 +308,15 @@ def burn_io(filter_vmss: str = None,
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
+
+    path : str, optional
+        The absolute path to write the stress file into. Defaults to ``C:\burn`` for Windows
+        clients and ``/root/burn`` for Linux clients.
     """
+    operation_name = burn_io.__name__
     logger.debug(
         "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', duration='{}',".format(
-            burn_io.__name__, configuration, filter_vmss, filter_instances, duration))
+            operation_name, configuration, filter_vmss, filter_instances, duration))
 
     client = init_client(secrets, configuration)
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
@@ -323,19 +329,21 @@ def burn_io(filter_vmss: str = None,
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
-                command_id, script_content = command.prepare__old(instance, 'burn_io')
+                command_id, script_content = command.prepare(instance, operation_name)
+                fill_path = command.prepare_path(instance, path)
                 parameters = {
                     'command_id': command_id,
                     'script': [script_content],
                     'parameters': [
-                        {'name': "duration", 'value': duration}
+                        {'name': "input_duration", 'value': duration},
+                        {'name': "input_path", 'value': fill_path}
                     ]
                 }
 
                 # collect future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, burn_io.__name__, vmss['resourceGroup'], instance, duration, parameters,
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
                         configuration, client))
 
             # wait for the results
@@ -377,10 +385,12 @@ def fill_disk(filter_vmss: str = None,
         Location of the stressing file where it is generated. Defaults to ``/root/burn`` on Linux systems
         and ``C:/burn`` on Windows machines.
     """
+    operation_name = fill_disk.__name__
+
     logger.debug(
         "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', "
         "duration='{}', size='{}', path='{}'".format(
-            fill_disk.__name__, configuration, filter_vmss, filter_instances, duration, size, path))
+            operation_name, configuration, filter_vmss, filter_instances, duration, size, path))
 
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -394,23 +404,23 @@ def fill_disk(filter_vmss: str = None,
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
-                command_id, script_content = command.prepare__old(instance, 'fill_disk')
+                command_id, script_content = command.prepare(instance, operation_name)
                 fill_path = command.prepare_path(instance, path)
 
                 parameters = {
                     'command_id': command_id,
                     'script': [script_content],
                     'parameters': [
-                        {'name': "duration", 'value': duration},
-                        {'name': "size", 'value': size},
-                        {'name': "path", 'value': fill_path}
+                        {'name': "input_duration", 'value': duration},
+                        {'name': "input_size", 'value': size},
+                        {'name': "input_path", 'value': fill_path}
                     ]
                 }
 
                 # collect the future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, fill_disk.__name__, vmss['resourceGroup'], instance, duration, parameters,
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
                         configuration, client))
 
             # wait for the results
@@ -429,9 +439,12 @@ def network_latency(filter_vmss: str = None,
                     duration: int = 60,
                     delay: int = 200,
                     jitter: int = 50,
+                    network_interface: str = "eth0",
                     configuration: Configuration = None,
                     secrets: Secrets = None):
     """Increase the response time on instances.
+
+    **Please note**: This action is available only for Linux-based systems.
 
     Parameters
     ----------
@@ -449,12 +462,16 @@ def network_latency(filter_vmss: str = None,
         Applied delay of the response time in milliseconds. Defaults to 200 milliseconds.
 
     jitter : int, optional
-        Applied +/- jitter to the delay of the response time in milliseconds. Defaults to 50 milliseconds.
+        Applied variance of +/- jitter to the delay of the response time in milliseconds. Defaults to 50 milliseconds.
+
+    network_interface : str, optional
+        The network interface where the network latency is applied to. Defaults to local ethernet eth0.
     """
+    operation_name = network_latency.__name__
     logger.debug(
-        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', "
-        "duration='{}', delay='{}', jitter='{}'".format(
-            network_latency.__name__, configuration, filter_vmss, filter_instances, duration, delay, jitter))
+        "Starting {}: configuration='{}', filter='{}', duration='{}',"
+        " delay='{}', jitter='{}', network_interface='{}'".format(
+            operation_name, configuration, filter, duration, delay, jitter, network_interface))
 
     vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -468,21 +485,22 @@ def network_latency(filter_vmss: str = None,
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
-                command_id, script_content = command.prepare__old(instance, 'network_latency')
+                command_id, script_content = command.prepare(instance, operation_name)
                 parameters = {
                     'command_id': command_id,
                     'script': [script_content],
                     'parameters': [
-                        {'name': "duration", 'value': duration},
-                        {'name': "delay", 'value': delay},
-                        {'name': "jitter", 'value': jitter}
+                        {'name': "input_duration", 'value': duration},
+                        {'name': "input_delay", 'value': delay},
+                        {'name': "input_jitter", 'value': jitter},
+                        {'name': "input_network_interface", 'value': network_interface}
                     ]
                 }
 
                 # collect the future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, network_latency.__name__, vmss['resourceGroup'], instance, duration,
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration,
                         parameters, configuration, client))
 
             # wait for the results

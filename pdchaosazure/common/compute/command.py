@@ -1,5 +1,3 @@
-import os
-
 from azure.mgmt.compute import ComputeManagementClient
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
@@ -9,7 +7,7 @@ from pdchaoskit import scripts
 from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
 
-UNSUPPORTED_WINDOWS_SCRIPTS = ['network_latency', 'burn_io']
+UNSUPPORTED_WINDOWS_SCRIPTS = ['network_latency']
 
 
 def prepare_path(machine: dict, path: str):
@@ -34,29 +32,14 @@ def prepare(compute: dict, script_id: str):
         command_id = 'RunShellScript'
         script_name = "{}.sh".format(script_id)
     else:
+        if script_id in UNSUPPORTED_WINDOWS_SCRIPTS:
+            raise InterruptExecution("'{}' is not supported for os '{}'"
+                                     .format(script_id, OS_WINDOWS))
         command_id = 'RunPowerShellScript'
         script_name = "{}.ps1".format(script_id)
 
     script_content = scripts.get_content(script_name)
     return command_id, script_content
-
-
-def prepare__old(compute: dict, script: str):
-    os_type = __get_os_type(compute)
-    if os_type == OS_LINUX:
-        command_id = 'RunShellScript'
-        script_name = "{}.sh".format(script)
-    else:
-        if script in UNSUPPORTED_WINDOWS_SCRIPTS:
-            raise InterruptExecution("'{}' is not supported for os '{}'"
-                                     .format(script, OS_WINDOWS))
-        command_id = 'RunPowerShellScript'
-        script_name = "{}.ps1".format(script)
-
-    file_path = os.path.join(os.path.dirname(__file__), "../scripts", script_name)
-    with open(file_path) as file_path:
-        script_content = file_path.read()
-        return command_id, script_content
 
 
 def run(resource_group: str, compute: dict, timeout: int, parameters: dict, client: ComputeManagementClient):
