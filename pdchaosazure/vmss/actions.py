@@ -292,7 +292,6 @@ def stress_cpu(filter_vmss: str = None,
 def burn_io(filter_vmss: str = None,
             filter_instances: str = None,
             duration: int = 60,
-            size: int = 30,
             path: str = None,
             configuration: Configuration = None,
             secrets: Secrets = None):
@@ -309,9 +308,6 @@ def burn_io(filter_vmss: str = None,
 
     duration : int, optional
         Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
-
-    size : int
-        Size of the file in megabytes that is written to. Defaults to 30 MB.
 
     path : str, optional
         The absolute path to write the stress file into. Defaults to ``C:\burn`` for Windows
@@ -340,7 +336,6 @@ def burn_io(filter_vmss: str = None,
                     'script': [script_content],
                     'parameters': [
                         {'name': "input_duration", 'value': duration},
-                        {'name': "input_size", 'value': size},
                         {'name': "input_path", 'value': fill_path}
                     ]
                 }

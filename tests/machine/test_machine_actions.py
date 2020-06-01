@@ -296,7 +296,6 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client,
             'script': ['burn_io.sh'],
             'parameters': [
                 {'name': 'input_duration', 'value': duration},
-                {'name': 'input_size', 'value': 30},
                 {'name': 'input_path', 'value': '/root/burn'}
             ]
         },
