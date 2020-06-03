@@ -46,125 +46,93 @@ Please explore the code to see existing probes and actions.
 
 ## Configuration
 
-This extension uses the [Azure SDK][sdk] libraries under the hood. The Azure SDK library expects that you have a tenant and client identifier, as well as a client secret and subscription, that allows you to authenticate with the Azure resource management API.
+This extension uses the [Azure SDK][azure-python-sdk] libraries under the hood. The Azure SDK library expects that you have a `Tenant ID`, `Client ID`, `Client Secret` as well as a `Subscription ID`, that allows you to authenticate with the Azure resource management API.
 
-Configuration values for the Chaos Toolkit Extension for Azure can come from several sources:
+The extension will first try to load the configuration from the `experiment file`. If configuration is not provided in the `Experiment file`, it will try to load it from the `Azure credential file`.
 
-- Experiment file
-- Azure credential file
+[azure-python-sdk]: https://github.com/Azure/azure-sdk-for-python
 
-The extension will first try to load the configuration from the `experiment file`. If configuration is not provided in the `experiment file`, it will try to load it from the `Azure credential file`.
+### Configuration in the `Experiment file`
 
-[creds]: https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-connect-to-secure-cluster
-[requests]: http://docs.python-requests.org/en/master/
-[sdk]: https://github.com/Azure/azure-sdk-for-python
-
-### Credentials
-
-- Secrets in the Experiment file
-
-  ```json
-  {
-    "secrets": {
-      "azure": {
-        "client_id": "your-super-secret-client-id",
-        "client_secret": "your-even-more-super-secret-client-secret",
-        "tenant_id": "your-tenant-id"
-      }
+Set `Tenant ID`, `Client ID` and `Client Secret` in the `Experiment file` as defined below:
+```json
+{
+  "secrets": {
+    "azure": {
+      "client_id": "your-super-secret-client-id",
+      "client_secret": "your-even-more-super-secret-client-secret",
+      "tenant_id": "your-tenant-id"
     }
   }
-  ```
+}
+```
 
-  You can retrieve secretes as well from [environment][env_secrets] or [HashiCorp vault][vault_secrets]. 
-
-  
-  If you are not working with Public Global Azure, e.g. China Cloud You can set the cloud environment.
-
-  ```json
-  {
-    "client_id": "your-super-secret-client-id",
-    "client_secret": "your-even-more-super-secret-client-secret",
-    "tenant_id": "your-tenant-id",
-    "azure_cloud": "AZURE_CHINA_CLOUD"
+Additionally you need to provide your `Subscription ID` as defined below:
+```json
+{
+  "configuration": {
+    "azure_subscription_id": "your-azure-subscription-id"
   }
-  ```
+}
+```
 
-  Available cloud names:
-
-  - AZURE_CHINA_CLOUD
-  - AZURE_GERMAN_CLOUD
-  - AZURE_PUBLIC_CLOUD
-  - AZURE_US_GOV_CLOUD
-
-  [vault_secrets]: https://docs.chaostoolkit.org/reference/api/experiment/#vault-secrets
-  [env_secrets]: https://docs.chaostoolkit.org/reference/api/experiment/#environment-secrets
-
-
-- Secrets in the Azure credential file
-
-  You can retrieve a credentials file with your subscription ID already in place by signing in to Azure using the az login command followed by the az ad sp create-for-rbac command
-
-  ```bash
-  az login
-  az ad sp create-for-rbac --sdk-auth > credentials.json
-  ```
-
-  credentials.json:
-
-  ```json
+If you are not working with Public Global Azure, e.g. China Cloud You can set the cloud environment as defined below:
+```json
   {
-    "subscriptionId": "<azure_aubscription_id>",
-    "tenantId": "<tenant_id>",
-    "clientId": "<application_id>",
-    "clientSecret": "<application_secret>",
-    "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
-    "resourceManagerEndpointUrl": "https://management.azure.com/",
-    "activeDirectoryGraphResourceId": "https://graph.windows.net/",
-    "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
-    "galleryEndpointUrl": "https://gallery.azure.com/",
-    "managementEndpointUrl": "https://management.core.windows.net/"
-  }
-  ```
-
-  Store the path to the file in an environment variable called **AZURE_AUTH_LOCATION** and make sure that your experiment does **NOT** contain `secrets` section. 
-
-### Subscription
-
-Additionally you need to provide the Azure subscription id.
-
-- Subscription id in the experiment file
-
-  ```json
-  {
-    "configuration": {
-      "azure_subscription_id": "your-azure-subscription-id"
+  "secrets": {
+    "azure": {
+      "azure_cloud": "AZURE_CHINA_CLOUD"
     }
   }
-  ```
+}
+```
 
-  Configuration may be as well retrieved from an [environment][env_configuration].
+Available cloud names:
+- AZURE_CHINA_CLOUD
+- AZURE_GERMAN_CLOUD
+- AZURE_PUBLIC_CLOUD
+- AZURE_US_GOV_CLOUD
 
-  An old, but deprecated way of doing it was as follows, this still works
-  but should not be favoured over the previous approaches as it's not the
-  Chaos Toolkit way to pass structured configurations.
+>**Tip**
+You can retrieve secrets and configuration values from [environment][env_secrets] or [HashiCorp vault][vault_secrets]. 
 
-  ```json
-  {
-    "configuration": {
-      "azure": {
-        "subscription_id": "your-azure-subscription-id"
-      }
-    }
-  }
-  ```
+[vault_secrets]: https://docs.chaostoolkit.org/reference/api/experiment/#vault-secrets
+[env_secrets]: https://docs.chaostoolkit.org/reference/api/experiment/#environment-secrets
 
-  [env_configuration]: https://docs.chaostoolkit.org/reference/api/experiment/#environment-configurations
+### Configuration in the `Azure credential file`
 
-- Subscription id in the Azure credential file
+Create the `Azure credential file` file using `Azure Cli`. 
 
-  Credential file described in the previous "Credential" section contains as well subscription id. If **AZURE_AUTH_LOCATION** is set and subscription id is **NOT** set in the experiment definition, extension will try to load it from the credential file.
+```bash
+az login
+az ad sp create-for-rbac --sdk-auth > credentials.json
+```
 
-  
+>**Warning**
+If you're in an organization, you may not have permission in the subscription to run this command. In that case, contact the subscription owners to have them create the service principal for you.
+You can find more information about format of the credential file and signing into Azure [here][credential_file].
+
+
+Output of the command should create a following file (placeholder will contain your secrets):
+```json
+{
+  "subscriptionId": "<azure_aubscription_id>",
+  "tenantId": "<tenant_id>",
+  "clientId": "<application_id>",
+  "clientSecret": "<application_secret>",
+  "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+  "resourceManagerEndpointUrl": "https://management.azure.com/",
+  "activeDirectoryGraphResourceId": "https://graph.windows.net/",
+  "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+  "galleryEndpointUrl": "https://gallery.azure.com/",
+  "managementEndpointUrl": "https://management.core.windows.net/"
+}
+```
+
+Store the path to the file in an environment variable called **AZURE_AUTH_LOCATION** and make sure that your `Experiment file` does **NOT** contain `secrets` section and `azure_subscription_id`. 
+
+[credential_file]: https://docs.microsoft.com/en-us/azure/developer/python/configure-local-development-environment?tabs=bash#sign-in-to-azure-from-the-cli
+
 
 ### Putting it all together
 
