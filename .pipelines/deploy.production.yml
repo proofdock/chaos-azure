@@ -26,7 +26,6 @@ stages:
     dependsOn: verify
     jobs:
       - deployment: production
-        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
         pool:
           vmImage: "ubuntu-latest"
         environment: production
