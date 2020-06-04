@@ -289,7 +289,7 @@ If you wish to contribute more functions to this package, you are more than welc
 
 The Proofdock Chaos CLI project requires all contributors to sign a [Developer Certificate of Origin][dco] on each commit they would like to merge into the master branch of the repository. Please, make sure you can abide by the rules of the DCO before submitting a PR.
 
-[dco]: https://github.com/probot/dco#how-it-works
+[dco]: https://developercertificate.org/
 
 ### Develop
 
