@@ -283,7 +283,7 @@ The KQLL defines:
 
 ## Contribute
 
-If you wish to contribute more functions to this package, you are more than welcome to do so. Please, fork this project, make your changes following the usual [PEP 8][pep8] code style complemented with our flavor, sprinkling with tests and submit a PR for review.
+If you wish to contribute more functions to this package, you are more than welcome to do so. Please, fork this project, make your changes following the usual [PEP 8][pep8] code style complemented with a flavor (defined in .flake8 file), sprinkling with tests and submit a PR for review.
 
 [pep8]: https://pycodestyle.readthedocs.io/en/latest/
 
