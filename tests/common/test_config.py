@@ -71,21 +71,6 @@ def test_load_subscription_from_experiment_dict():
     assert configuration.get('subscription_id') == "AZURE_SUBSCRIPTION_ID"
 
 
-def test_load_legacy_subscription_from_experiment_dict():
-    # arrange
-    experiment_configuration = {
-        "azure": {
-            "subscription_id": "AZURE_SUBSCRIPTION_ID"
-        }
-    }
-
-    # act
-    configuration = config.load_subscription_id(experiment_configuration)
-
-    # assert
-    assert configuration.get('subscription_id') == "AZURE_SUBSCRIPTION_ID"
-
-
 def test_load_subscription_from_credential_file(monkeypatch):
     # arrange
     experiment_configuration = None

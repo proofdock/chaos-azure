@@ -116,10 +116,6 @@ def load_subscription_id(experiment_configuration: Configuration):
     # 1: lookup in experiment definition
     if experiment_configuration:
         subscription_id = experiment_configuration.get("azure_subscription_id")
-        # check legacy subscription location
-        if not subscription_id:
-            subscription_id = experiment_configuration \
-                .get('azure', {}).get('subscription_id')
 
     if subscription_id:
         return {'subscription_id': subscription_id}
