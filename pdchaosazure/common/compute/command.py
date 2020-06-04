@@ -1,3 +1,5 @@
+import operator
+
 from azure.mgmt.compute import ComputeManagementClient
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
@@ -73,7 +75,8 @@ def run(resource_group: str, compute: dict, timeout: int, parameters: dict, clie
 def fill_parameters(command_id, script_content, **kwargs) -> dict:
     input_parameters = []
 
-    for key, value in kwargs.items():
+    sorted_kwargs = dict(sorted(kwargs.items(), key=operator.itemgetter(0)))
+    for key, value in sorted_kwargs.items():
         input_parameters.append({'name': "input_{}".format(key), 'value': value})
 
     result = {
