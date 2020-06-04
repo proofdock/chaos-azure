@@ -1,5 +1,3 @@
-import operator
-
 from azure.mgmt.compute import ComputeManagementClient
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
