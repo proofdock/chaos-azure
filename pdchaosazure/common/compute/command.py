@@ -70,6 +70,21 @@ def run(resource_group: str, compute: dict, timeout: int, parameters: dict, clie
                              " You may consider to increase the timeout in the experiment configuration.")
 
 
+def fill_parameters(command_id, script_content, **kwargs) -> dict:
+    input_parameters = []
+
+    for key in sorted(kwargs.keys()):
+        input_parameters.append({'name': "input_{}".format(key), 'value': kwargs[key]})
+
+    result = {
+        'command_id': command_id,
+        'script': [script_content],
+        'parameters': input_parameters
+    }
+
+    return result
+
+
 #####################
 # HELPER FUNCTIONS
 ####################

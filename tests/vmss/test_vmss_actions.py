@@ -162,8 +162,8 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init
             'command_id': 'RunShellScript',
             'script': ['network_latency.sh'],
             'parameters': [
-                {'name': "input_duration", 'value': duration},
                 {'name': "input_delay", 'value': 200},
+                {'name': "input_duration", 'value': duration},
                 {'name': "input_jitter", 'value': 50},
                 {'name': "input_network_interface", 'value': "eth0"}
             ]
@@ -260,8 +260,8 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_pr
             'script': ['fill_disk.sh'],
             'parameters': [
                 {'name': "input_duration", 'value': duration},
-                {'name': "input_size", 'value': 1000},
-                {'name': "input_path", 'value': '/root/burn/hard'}
+                {'name': "input_path", 'value': '/root/burn/hard'},
+                {'name': "input_size", 'value': 1000}
             ]
         },
         mocked_client

@@ -163,13 +163,7 @@ def stress_cpu(filter: str = None,
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(machines)) as executor:
         for machine in machines:
             command_id, script_content = command.prepare(machine, operation_name)
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "input_duration", 'value': duration}
-                ]
-            }
+            parameters = command.fill_parameters(command_id, script_content, duration=duration)
 
             # collect future results
             futures.append(
@@ -221,15 +215,8 @@ def fill_disk(filter: str = None,
         for machine in machines:
             command_id, script_content = command.prepare(machine, 'fill_disk')
             fill_path = command.prepare_path(machine, path)
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "input_duration", 'value': duration},
-                    {'name': "input_size", 'value': size},
-                    {'name': "input_path", 'value': fill_path}
-                ]
-            }
+            parameters = command.fill_parameters(
+                command_id, script_content, duration=duration, size=size, path=fill_path)
 
             # collect future results
             futures.append(
@@ -289,16 +276,9 @@ def network_latency(filter: str = None,
         for machine in machines:
             command_id, script_content = command.prepare(machine, operation_name)
             logger.debug("Script content: {}".format(script_content))
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "input_duration", 'value': duration},
-                    {'name': "input_delay", 'value': delay},
-                    {'name': "input_jitter", 'value': jitter},
-                    {'name': "input_network_interface", 'value': network_interface}
-                ]
-            }
+            parameters = command.fill_parameters(
+                command_id, script_content, duration=duration, delay=delay, jitter=jitter,
+                network_interface=network_interface)
 
             # collect future results
             futures.append(
@@ -348,14 +328,7 @@ def burn_io(filter: str = None,
         for machine in machines:
             command_id, script_content = command.prepare(machine, 'burn_io')
             fill_path = command.prepare_path(machine, path)
-            parameters = {
-                'command_id': command_id,
-                'script': [script_content],
-                'parameters': [
-                    {'name': "input_duration", 'value': duration},
-                    {'name': "input_path", 'value': fill_path}
-                ]
-            }
+            parameters = command.fill_parameters(command_id, script_content, duration=duration, path=fill_path)
 
             # collect future results
             futures.append(
