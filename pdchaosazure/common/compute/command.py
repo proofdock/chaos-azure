@@ -75,9 +75,8 @@ def run(resource_group: str, compute: dict, timeout: int, parameters: dict, clie
 def fill_parameters(command_id, script_content, **kwargs) -> dict:
     input_parameters = []
 
-    sorted_kwargs = dict(sorted(kwargs.items(), key=operator.itemgetter(0)))
-    for key, value in sorted_kwargs.items():
-        input_parameters.append({'name': "input_{}".format(key), 'value': value})
+    for key in sorted(kwargs.keys()):
+        input_parameters.append({'name': "input_{}".format(key), 'value': kwargs[key]})
 
     result = {
         'command_id': command_id,
