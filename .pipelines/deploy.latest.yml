@@ -25,10 +25,10 @@ stages:
           display_version: 3_8
   - stage: deploy
     displayName: deploy:latest
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
     dependsOn: verify
     jobs:
       - deployment: latest
-        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
         pool:
           vmImage: "ubuntu-latest"
         environment: latest
