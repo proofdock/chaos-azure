@@ -370,7 +370,7 @@ def fill_disk(filter_vmss: str = None,
 
     path : str, optional
         Location of the stressing file where it is generated. Defaults to ``/root/burn`` on Linux systems
-        and ``C:/burn`` on Windows machines.
+        and ``C:\\burn`` on Windows machines.
     """
     operation_name = fill_disk.__name__
 
