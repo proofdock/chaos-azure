@@ -304,7 +304,7 @@ def burn_io(filter_vmss: str = None,
         Duration of the stress test (in seconds) that generates high disk I/O operations. Defaults to 60 seconds.
 
     path : str, optional
-        The absolute path to write the stress file into. Defaults to ``C:\burn`` for Windows
+        The absolute path to write the stress file into. Defaults to ``C:\\burn`` for Windows
         clients and ``/root/burn`` for Linux clients.
     """
     operation_name = burn_io.__name__

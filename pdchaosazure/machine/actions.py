@@ -199,7 +199,7 @@ def fill_disk(filter: str = None,
 
     path : str, optional
         The absolute path to write the fill file into.
-        Defaults to ``C:\burn`` for Windows clients and ``/root/burn`` for Linux clients.
+        Defaults to ``C:\\burn`` for Windows clients and ``/root/burn`` for Linux clients.
     """
 
     logger.debug("Starting {}: configuration='{}', filter='{}', duration='{}', size='{}', path='{}'".format(
@@ -310,7 +310,7 @@ def burn_io(filter: str = None,
         How long the burn lasts. Defaults to 60 seconds.
 
     path : str, optional
-        The absolute path to write the stress file into. Defaults to ``C:\burn`` for Windows
+        The absolute path to write the stress file into. Defaults to ``C:\\burn`` for Windows
         clients and ``/root/burn`` for Linux clients.
     """
 
