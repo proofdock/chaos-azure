@@ -269,11 +269,11 @@ With a filter you can ultimatively select the Azure resources that shall be atta
 
 ### Kusto Query Language Light
 
-At some places in the chaos experiment API some Azure resources are not supported by Azure to be filtered with the Kusto Query Language. A very prominent example are instances of a virtual machine set such as Virtual Machine Scale Sets.
+At some places in the chaos experiment API some Azure resources are not supported for filtering with the Kusto Query Language (KQL). A prominent example are instances of a virtual machine scale set.
 
-We anyhow decided to support you with an easy way of filtering for those resources as well with a Kusto Query Language Light (KQLL) syntax. The KQLL defines a small subset of the KQL from Azure but should serve the daily purposes of the chaos experiments.
+We decided to support you with an easy way of filtering for those kind of resources with a Kusto Query Language Light (KQLL) syntax. The KQLL defines a small subset of the KQL. Although only a small subset is offered it should serve the daily purposes when used in chaos experiments.
 
-The small subset defines:
+The KQLL defines:
 * ``where``-clauses with ``and`` and ``or`` expressions
 * pipe ``|`` operators
 * ``take``, ``top``, and ``sample`` commands
@@ -283,25 +283,17 @@ The small subset defines:
 
 ## Contribute
 
-If you wish to contribute more functions to this package, you are more than
-welcome to do so. Please, fork this project, make your changes following the
-usual [PEP 8][pep8] code style, sprinkling with tests and submit a PR for
-review.
+If you wish to contribute more functions to this package, you are more than welcome to do so. Please, fork this project, make your changes following the usual [PEP 8][pep8] code style complemented with a flavor (defined in .flake8 file), sprinkling with tests and submit a PR for review.
 
 [pep8]: https://pycodestyle.readthedocs.io/en/latest/
 
-The Chaos Toolkit projects require all contributors must sign a
-[Developer Certificate of Origin][dco] on each commit they would like to merge
-into the master branch of the repository. Please, make sure you can abide by
-the rules of the DCO before submitting a PR.
+The Proofdock Chaos CLI project requires all contributors to sign a [Developer Certificate of Origin][dco] on each commit they would like to merge into the master branch of the repository. Please, make sure you can abide by the rules of the DCO before submitting a PR.
 
-[dco]: https://github.com/probot/dco#how-it-works
+[dco]: https://developercertificate.org/
 
 ### Develop
 
-If you wish to develop on this project, make sure to install the development
-dependencies. But first, [create a virtual environment][venv] and then install
-those dependencies.
+If you wish to develop on this project, make sure to install the development dependencies. But first, [create a virtual environment][venv] and then install those dependencies.
 
 [venv]: http://chaostoolkit.org/reference/usage/install/#create-a-virtual-environment
 
