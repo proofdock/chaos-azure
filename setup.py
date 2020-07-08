@@ -1,11 +1,28 @@
 #!/usr/bin/env python
 """chaos-dock-azure extension builder and installer"""
+import os
 
-from pdchaosazure import __version__
 import sys
 
 import io
 import setuptools
+
+
+def get_version_from_package() -> str:
+    """
+    Read the package version from the source without importing it.
+    """
+
+    path = os.path.join(os.path.dirname(__file__), "pdchaosazure/__init__.py")
+    path = os.path.normpath(os.path.abspath(path))
+    with open(path) as f:
+        for line in f:
+            if line.startswith("__version__"):
+                token, version = line.split(" = ", 1)
+                version = version.replace("'", "").strip()
+                print(version)
+                return version
+
 
 sys.path.insert(0, ".")
 sys.path.remove(".")
@@ -50,7 +67,7 @@ with io.open('requirements.txt') as f:
 
 setup_params = dict(
     name=name,
-    version=__version__,
+    version=get_version_from_package(),
     description=desc,
     long_description=long_desc,
     long_description_content_type='text/markdown',
