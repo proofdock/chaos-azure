@@ -5,7 +5,6 @@ stages:
   - stage: deploy
     displayName: deploy:production
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
-    dependsOn: verify
     jobs:
       - deployment: production
         pool:
