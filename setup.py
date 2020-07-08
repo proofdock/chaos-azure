@@ -15,8 +15,8 @@ def get_version_from_package() -> str:
 
     path = os.path.join(os.path.dirname(__file__), "pdchaosazure/__init__.py")
     path = os.path.normpath(os.path.abspath(path))
-    with open(path) as f:
-        for line in f:
+    with open(path) as file:
+        for line in file:
             if line.startswith("__version__"):
                 token, version = line.split(" = ", 1)
                 version = version.replace("'", "").strip()
@@ -59,7 +59,7 @@ pytest_runner = ['pytest_runner'] if needs_pytest else []
 
 test_require = []
 with io.open('requirements-dev.txt') as f:
-    test_require = [l.strip() for l in f if not l.startswith('#')]
+    test_require = [line.strip() for line in f if not line.startswith('#')]
 
 install_require = []
 with io.open('requirements.txt') as f:

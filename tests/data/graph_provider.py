@@ -19,7 +19,8 @@ def default():
         ],
         'rows': [
             [
-                '/subscriptions/05aaaafa-6aa1/resourceGroups/vmachine/providers/Microsoft.Compute/virtualMachines/vmachine1',
+                '/subscriptions/05aaaafa-6aa1/resourceGroups/vmachine/providers/Microsoft.Compute/virtualMachines'
+                '/vmachine1',
                 None, 'vmachine1',
                 'microsoft.compute/virtualmachines', '',
                 None, None, 'westeurope',
@@ -28,7 +29,8 @@ def default():
                     'networkProfile': {
                         'networkInterfaces': [
                             {
-                                'id': '/subscriptions/05aaaafa-6aa1/resourceGroups/vmachine/providers/Microsoft.Network/networkInterfaces/vmachine1960'
+                                'id': '/subscriptions/05aaaafa-6aa1/resourceGroups/vmachine/providers/Microsoft'
+                                      '.Network/networkInterfaces/vmachine1960 '
                             }
                         ]
                     },
@@ -46,7 +48,8 @@ def default():
                             'createOption': 'FromImage',
                             'diskSizeGB': 30,
                             'managedDisk': {
-                                'id': '/subscriptions/05aaaafa-6aa1/resourceGroups/VMACHINE/providers/Microsoft.Compute/disks/vmachine1_disk1_300a88dc334643b187532d00957f5736',
+                                'id': '/subscriptions/05aaaafa-6aa1/resourceGroups/VMACHINE/providers/Microsoft'
+                                      '.Compute/disks/vmachine1_disk1_300a88dc334643b187532d00957f5736',
                                 'storageAccountType': 'Premium_LRS'},
                             'caching': 'ReadWrite',
                             'osType': 'Linux'}
@@ -86,7 +89,8 @@ def simple():
         ],
         'rows': [
             [
-                '/subscriptions/05aaaafa-6aa1/resourceGroups/vmachine/providers/Microsoft.Compute/virtualMachines/vmachine1',
+                '/subscriptions/05aaaafa-6aa1/resourceGroups/vmachine/providers/Microsoft.Compute/virtualMachines'
+                '/vmachine1',
                 'vmachine1',
                 'microsoft.compute/virtualmachines'
             ]
