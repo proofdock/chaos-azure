@@ -1,28 +1,7 @@
 trigger:
   - master
 
-pr:
-  - master
-
 stages:
-  - stage: verify
-    jobs:
-      - template: templates/verify.yml  # Verify Python 3.5
-        parameters:
-          version: 3.5
-          display_version: 3_5
-      - template: templates/verify.yml  # Verify Python 3.6
-        parameters:
-          version: 3.6
-          display_version: 3_6
-      - template: templates/verify.yml  # Verify Python 3.7
-        parameters:
-          version: 3.7
-          display_version: 3_7
-      - template: templates/verify.yml  # Verify Python 3.8
-        parameters:
-          version: 3.8
-          display_version: 3_8
   - stage: deploy
     displayName: deploy:latest
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/master'))
