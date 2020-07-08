@@ -35,8 +35,7 @@ def test_load_token_from_experiment_dict():
 
     # assert
     assert secrets.get('access_token') == "ACCESS_TOKEN"
-    assert secrets.get('cloud') \
-               .endpoints.resource_manager == "https://management.azure.com/"
+    assert secrets.get('cloud').endpoints.resource_manager == "https://management.azure.com/"
 
 
 def test_load_secrets_from_credential_file(monkeypatch):
@@ -53,8 +52,7 @@ def test_load_secrets_from_credential_file(monkeypatch):
     assert secrets.get('client_id') == "AZURE_CLIENT_ID"
     assert secrets.get('client_secret') == "AZURE_CLIENT_SECRET"
     assert secrets.get('tenant_id') == "AZURE_TENANT_ID"
-    assert secrets.get('cloud') \
-               .endpoints.resource_manager == "https://management.azure.com/"
+    assert secrets.get('cloud').endpoints.resource_manager == "https://management.azure.com/"
 
 
 def test_load_subscription_from_experiment_dict():

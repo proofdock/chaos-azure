@@ -63,7 +63,7 @@ with io.open('requirements-dev.txt') as f:
 
 install_require = []
 with io.open('requirements.txt') as f:
-    install_require = [l.strip() for l in f if not l.startswith('#')]
+    install_require = [ln.strip() for ln in f if not ln.startswith('#')]
 
 setup_params = dict(
     name=name,
