@@ -1,7 +1,4 @@
-coverage
-pycodestyle
-pytest>=2.8
+flake8
+pytest
 pytest-cov
-pytest-sugar
-requests
-requests_mock
+setuptools>=47.3.1

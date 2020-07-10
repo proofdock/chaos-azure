@@ -292,7 +292,7 @@ def test_unhappily_fill_disk(mocked_command_run, mocked_command_prepare, mocked_
     mocked_init_client.return_value = mocked_client
 
     # act
-    with pytest.raises(FailedActivity) as x:
+    with pytest.raises(FailedActivity):
         fill_disk(
             filter_vmss="where name=='some_random_instance'", duration=60, size=1000, path='/root/burn/hard',
             configuration=configuration, secrets=secrets)

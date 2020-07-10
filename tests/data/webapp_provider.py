@@ -18,7 +18,8 @@ def real_world_sample():
             'name': 'proofdock', 'privateEndpointConnections': [], 'enabled': True,
             'hostingEnvironmentProfile': None, 'state': 'Running', 'domainVerificationIdentifiers': None,
             'hostingEnvironmentId': None,
-            'possibleOutboundIpAddresses': '13.69.68.43,13.94.143.214,13.94.150.186,13.94.151.22,13.69.121.116,13.94.137.26,40.68.188.89,13.94.142.40,13.94.144.225,104.214.221.75',
+            'possibleOutboundIpAddresses': '13.69.68.43,13.94.143.214,13.94.150.186,13.94.151.22,13.69.121.116,'
+                                           '13.94.137.26,40.68.188.89,13.94.142.40,13.94.144.225,104.214.221.75',
             'functionExecutionUnitsCache': None, 'storageRecoveryDefaultState': 'Running',
             'hostingEnvironment': None,
             'customDomainVerificationId': '382B835A0928C92D189B91C902B9F56BD64CEDA26CF89382AC8B51C8B5280CE4',
@@ -29,7 +30,8 @@ def real_world_sample():
             'outboundIpAddresses': '13.69.68.43,13.94.143.214,13.94.150.186,13.94.151.22,13.69.121.116',
             'resourceGroup': 'webapps', 'scmSiteAlsoStopped': False, 'siteDisabledReason': 0,
             'repositorySiteName': 'proofdock', 'maxNumberOfWorkers': None, 'targetBuildVersion': None,
-            'serverFarmId': '/subscriptions/05aaaafa-6951/resourceGroups/webapps/providers/Microsoft.Web/serverfarms/ASP-webapps-b9e0',
+            'serverFarmId': '/subscriptions/05aaaafa-6951/resourceGroups/webapps/providers/Microsoft.Web/serverfarms'
+                            '/ASP-webapps-b9e0',
             'hostNameSslStates': [
                 {
                     'name': 'proofdock.azurewebsites.net', 'toUpdateIpBasedSsl': None, 'ipBasedSslResult': None,
@@ -90,7 +92,8 @@ def real_world_sample():
                 'scmType': None, 'limits': None, 'cors': None, 'push': None}, 'serverFarm': None,
             'usageState': 'Normal', 'hostNames': ['proofdock.azurewebsites.net'], 'isXenon': False,
             'httpsOnly': False,
-            'selfLink': 'https://waws-prod-am2-311.api.azurewebsites.windows.net:454/subscriptions/05aaaafa-6951/webspaces/webapps-WestEuropewebspace/sites/proofdock',
+            'selfLink': 'https://waws-prod-am2-311.api.azurewebsites.windows.net:454/subscriptions/05aaaafa-6951'
+                        '/webspaces/webapps-WestEuropewebspace/sites/proofdock',
             'homeStamp': 'waws-prod-am2-311', 'hyperV': False, 'kind': 'app,linux,container', 'tags': {},
             'owner': None, 'csrs': [], 'cers': None}, 'resourceGroup': 'webapps',
         'subscriptionId': '05aaaafa-6951', 'managedBy': '', 'identity': None, 'zones': None,

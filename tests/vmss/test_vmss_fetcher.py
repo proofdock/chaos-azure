@@ -4,7 +4,6 @@ import pytest
 from chaoslib.exceptions import InterruptExecution
 
 import pdchaosazure
-from pdchaosazure.vmss.actions import delete_instance
 from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_instances
 from tests.data import vmss_provider
 
