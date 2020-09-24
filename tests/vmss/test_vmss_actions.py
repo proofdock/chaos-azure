@@ -82,8 +82,6 @@ def test_delete_vmss(client, fetch_instances, fetch_vmss):
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_stress_cpu(mocked_command_run, mocked_init_client, mocked_instances, mocked_vmss):
     # arrange mocks
-    operation_name = stress_cpu.__name__
-
     scale_set = vmss_provider.provide_scale_set()
     scale_sets = [scale_set]
     instance = vmss_provider.provide_instance()

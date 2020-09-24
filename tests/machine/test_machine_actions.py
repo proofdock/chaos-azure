@@ -136,8 +136,6 @@ def test_restart_two_machines(init, fetch):
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_stress_cpu(mocked_command_run, mocked_init_client, fetch):
     # arrange mocks
-    operation_name = stress_cpu.__name__
-
     machine = machine_provider.default()
     fetch.return_value = [machine]
 
