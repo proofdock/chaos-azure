@@ -1,8 +1,9 @@
+import os
+
 from azure.mgmt.compute import ComputeManagementClient
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
 from msrestazure import azure_exceptions
-from pdchaoskit import scripts
 
 from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
@@ -38,8 +39,10 @@ def prepare(compute: dict, script_id: str):
         command_id = 'RunPowerShellScript'
         script_name = "{}.ps1".format(script_id)
 
-    script_content = scripts.get_content(script_name)
-    return command_id, script_content
+    file_path = os.path.join(os.path.dirname(__file__), "../scripts", script_name)
+    with open(file_path) as file_path:
+        script_content = file_path.read()
+        return command_id, script_content
 
 
 def run(resource_group: str, compute: dict, timeout: int, parameters: dict, client: ComputeManagementClient):
@@ -55,8 +58,7 @@ def run(resource_group: str, compute: dict, timeout: int, parameters: dict, clie
                 resource_group, compute['name'], parameters)
 
         else:
-            msg = "Running a command for the unknown resource type '{}'" \
-                .format(compute.get('type'))
+            msg = "Running a command for the unknown resource type '{}'".format(compute.get('type'))
             raise InterruptExecution(msg)
 
     except azure_exceptions.CloudError as e:
