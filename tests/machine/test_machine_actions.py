@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, ANY
 
 from azure.mgmt.compute import ComputeManagementClient
 
@@ -133,13 +133,9 @@ def test_restart_two_machines(init, fetch):
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch('pdchaosazure.machine.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
+def test_stress_cpu(mocked_command_run, mocked_init_client, fetch):
     # arrange mocks
-    operation_name = stress_cpu.__name__
-    mocked_command_prepare.return_value = 'RunShellScript', '{}.sh'.format(operation_name)
-
     machine = machine_provider.default()
     fetch.return_value = [machine]
 
@@ -158,29 +154,16 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_prepare.assert_called_with(machine, operation_name)
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, duration + timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['{}.sh'.format(operation_name)],
-            'parameters': [
-                {'name': "input_duration", 'value': duration}
-            ]
-        },
-        mocked_client
-    )
+        machine['resourceGroup'], machine, duration + timeout, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch('pdchaosazure.machine.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_command_prepare,
-                   mocked_init_client, fetch):
+def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_client, fetch):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'fill_disk.sh'
     mocked_command_prepare_path.return_value = '/root/burn/hard'
 
     machine = machine_provider.default()
@@ -201,30 +184,15 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_comma
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_prepare.assert_called_with(machine, 'fill_disk')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['fill_disk.sh'],
-            'parameters': [
-                {'name': "input_duration", 'value': duration},
-                {'name': "input_path", 'value': '/root/burn/hard'},
-                {'name': "input_size", 'value': 1000}
-            ]
-        },
-        mocked_client
-    )
+        machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch('pdchaosazure.machine.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
+def test_network_latency(mocked_command_run, mocked_init_client, fetch):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'network_latency.sh'
-
     machine = machine_provider.default()
     machines = [machine]
     fetch.return_value = machines
@@ -245,31 +213,15 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_prepare.assert_called_with(machine, 'network_latency')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['network_latency.sh'],
-            'parameters': [
-                {'name': "input_delay", 'value': 200},
-                {'name': "input_duration", 'value': duration},
-                {'name': "input_jitter", 'value': 50},
-                {'name': "input_network_interface", 'value': "eth0"}
-            ]
-        },
-        mocked_client
-    )
+        machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
 @patch('pdchaosazure.machine.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch):
+def test_burn_io(mocked_command_run, mocked_init_client, fetch):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'burn_io.sh'
-
     machine = machine_provider.default()
     machines = [machine]
     fetch.return_value = machines
@@ -288,16 +240,5 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client,
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_prepare.assert_called_with(machine, 'burn_io')
     mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['burn_io.sh'],
-            'parameters': [
-                {'name': 'input_duration', 'value': duration},
-                {'name': 'input_path', 'value': '/root/burn'}
-            ]
-        },
-        mocked_client
-    )
+        machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)

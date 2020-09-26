@@ -3,5 +3,5 @@ azure-mgmt-resourcegraph
 azure-mgmt-web
 dateparser
 jmespath
-proofdock-chaos-kit
+chaostoolkit-lib>==1.1.2
 requests

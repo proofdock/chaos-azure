@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, ANY
 
 import pytest
 from chaoslib.exceptions import FailedActivity
@@ -79,13 +79,9 @@ def test_delete_vmss(client, fetch_instances, fetch_vmss):
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_client, mocked_instances, mocked_vmss):
+def test_stress_cpu(mocked_command_run, mocked_init_client, mocked_instances, mocked_vmss):
     # arrange mocks
-    operation_name = stress_cpu.__name__
-    mocked_command_prepare.return_value = 'RunShellScript', '{}.sh'.format(operation_name)
-
     scale_set = vmss_provider.provide_scale_set()
     scale_sets = [scale_set]
     instance = vmss_provider.provide_instance()
@@ -110,30 +106,15 @@ def test_stress_cpu(mocked_command_run, mocked_command_prepare, mocked_init_clie
     # assert
     mocked_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     mocked_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
-    mocked_command_prepare.assert_called_with(instance, operation_name)
-    mocked_command_run.assert_called_with(
-        scale_set['resourceGroup'], instance, timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['{}.sh'.format(operation_name)],
-            'parameters': [
-                {'name': "input_duration", 'value': duration}
-            ]
-        },
-        client
-    )
+    mocked_command_run.assert_called_with(scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init_client,
-                         mocked_fetch_instances, mocked_fetch_vmss):
+def test_network_latency(mocked_command_run, mocked_init_client, mocked_fetch_instances, mocked_fetch_vmss):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'network_latency.sh'
-
     scale_set = vmss_provider.provide_scale_set()
     instance = vmss_provider.provide_instance()
     mocked_fetch_vmss.return_value = [scale_set]
@@ -155,32 +136,16 @@ def test_network_latency(mocked_command_run, mocked_command_prepare, mocked_init
     # assert
     mocked_fetch_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     mocked_fetch_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
-    mocked_command_prepare.assert_called_with(instance, 'network_latency')
     mocked_command_run.assert_called_with(
-        scale_set['resourceGroup'], instance, timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['network_latency.sh'],
-            'parameters': [
-                {'name': "input_delay", 'value': 200},
-                {'name': "input_duration", 'value': duration},
-                {'name': "input_jitter", 'value': 50},
-                {'name': "input_network_interface", 'value': "eth0"}
-            ]
-        },
-        mocked_client
-    )
+        scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client, fetch_instances, fetch_vmss):
+def test_burn_io(mocked_command_run, mocked_init_client, fetch_instances, fetch_vmss):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'burn_io.sh'
-
     scale_set = vmss_provider.provide_scale_set()
     scale_sets = [scale_set]
     instance = vmss_provider.provide_instance()
@@ -206,29 +171,16 @@ def test_burn_io(mocked_command_run, mocked_command_prepare, mocked_init_client,
     fetch_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     fetch_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
     mocked_command_run.assert_called_with(
-        scale_set['resourceGroup'], instance, timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['burn_io.sh'],
-            'parameters': [
-                {'name': 'input_duration', 'value': duration},
-                {'name': 'input_path', 'value': '/root/burn'}
-            ]
-        },
-        mocked_client
-    )
+        scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
-def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_prepare_path,
-                   mocked_init_client, fetch_instances, fetch_vmss):
+def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_client, fetch_instances, fetch_vmss):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'fill_disk.sh'
     mocked_command_prepare_path.return_value = '/root/burn/hard'
 
     scale_set = vmss_provider.provide_scale_set()
@@ -254,30 +206,17 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_pr
     fetch_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     fetch_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
     mocked_command_run.assert_called_with(
-        scale_set['resourceGroup'], instance, timeout,
-        {
-            'command_id': 'RunShellScript',
-            'script': ['fill_disk.sh'],
-            'parameters': [
-                {'name': "input_duration", 'value': duration},
-                {'name': "input_path", 'value': '/root/burn/hard'},
-                {'name': "input_size", 'value': 1000}
-            ]
-        },
-        mocked_client
-    )
+        scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
 @patch('pdchaosazure.vmss.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
-@patch.object(pdchaosazure.common.compute.command, 'prepare', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', side_effect=FailedActivity("Activity monkey has failed"))
-def test_unhappily_fill_disk(mocked_command_run, mocked_command_prepare, mocked_command_prepare_path,
+def test_unhappily_fill_disk(mocked_command_run, mocked_command_prepare_path,
                              mocked_init_client, fetch_instances, fetch_vmss):
     # arrange mocks
-    mocked_command_prepare.return_value = 'RunShellScript', 'fill_disk.sh'
     mocked_command_prepare_path.return_value = '/root/burn/hard'
 
     scale_set = vmss_provider.provide_scale_set()
