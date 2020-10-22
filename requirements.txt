@@ -1,6 +1,6 @@
-azure-mgmt-compute
-azure-mgmt-resourcegraph
-azure-mgmt-web
+azure-mgmt-compute==12.0.0
+azure-mgmt-resourcegraph==2.0.0
+azure-mgmt-web===0.46.0
 dateparser
 jmespath
 chaostoolkit-lib>==1.1.2
