@@ -5,8 +5,8 @@ from chaoslib.exceptions import FailedActivity
 
 import pdchaosazure
 from pdchaosazure.common import config
-from pdchaosazure.vmss.actions import delete_instance, restart_instance, stop_instance, \
-    deallocate_instance, network_latency, burn_io, fill_disk, stress_cpu
+from pdchaosazure.vmss.actions import delete, restart, stop, \
+    deallocate, network_latency, burn_io, fill_disk, stress_cpu
 from tests.data import config_provider, secrets_provider, vmss_provider
 from tests.vmss.mock_client import MockComputeManagementClient
 
@@ -25,7 +25,7 @@ def test_deallocate_vmss(client, fetch_instances, fetch_vmss):
 
     client.return_value = MockComputeManagementClient()
 
-    deallocate_instance(None, None, None)
+    deallocate(None, None, None)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
@@ -41,7 +41,7 @@ def test_stop_vmss(client, fetch_instances, fetch_vmss):
 
     client.return_value = MockComputeManagementClient()
 
-    stop_instance(None, None, None, None)
+    stop(None, None, None, None)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
@@ -57,7 +57,7 @@ def test_restart_vmss(client, fetch_instances, fetch_vmss):
 
     client.return_value = MockComputeManagementClient()
 
-    restart_instance(None, None, None)
+    restart(None, None, None)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
@@ -73,7 +73,7 @@ def test_delete_vmss(client, fetch_instances, fetch_vmss):
 
     client.return_value = MockComputeManagementClient()
 
-    delete_instance(None, None, None)
+    delete(None, None, None)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
@@ -100,7 +100,7 @@ def test_stress_cpu(mocked_command_run, mocked_init_client, mocked_instances, mo
 
     # act
     stress_cpu(
-        filter_vmss="where name=='some_random_instance'", duration=duration, configuration=configuration,
+        vmss_filter="where name=='some_random_instance'", duration=duration, configuration=configuration,
         secrets=secrets)
 
     # assert
@@ -130,7 +130,7 @@ def test_network_latency(mocked_command_run, mocked_init_client, mocked_fetch_in
     mocked_init_client.return_value = mocked_client
 
     # act
-    network_latency(filter_vmss="where name=='some_random_instance'", duration=duration, delay=200, jitter=50,
+    network_latency(vmss_filter="where name=='some_random_instance'", duration=duration, delay=200, jitter=50,
                     configuration=configuration, secrets=secrets)
 
     # assert
@@ -164,7 +164,7 @@ def test_burn_io(mocked_command_run, mocked_init_client, fetch_instances, fetch_
 
     # act
     burn_io(
-        filter_vmss="where name=='some_random_instance'", duration=duration,
+        vmss_filter="where name=='some_random_instance'", duration=duration,
         configuration=configuration, secrets=secrets)
 
     # assert
@@ -199,7 +199,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_
 
     # act
     fill_disk(
-        filter_vmss="where name=='some_random_instance'", duration=duration, size=1000, path='/root/burn/hard',
+        vmss_filter="where name=='some_random_instance'", duration=duration, size=1000, path='/root/burn/hard',
         configuration=configuration, secrets=secrets)
 
     # assert
@@ -233,7 +233,7 @@ def test_unhappily_fill_disk(mocked_command_run, mocked_command_prepare_path,
     # act
     with pytest.raises(FailedActivity):
         fill_disk(
-            filter_vmss="where name=='some_random_instance'", duration=60, size=1000, path='/root/burn/hard',
+            vmss_filter="where name=='some_random_instance'", duration=60, size=1000, path='/root/burn/hard',
             configuration=configuration, secrets=secrets)
 
     # assert

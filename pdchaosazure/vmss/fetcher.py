@@ -9,22 +9,22 @@ from pdchaosazure.common.resources.graph import fetch_resources
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS
 
 
-def fetch_instances(vmss, filter_instances: str, client: ComputeManagementClient) -> List[Dict[str, Any]]:
-    if not filter_instances:
-        filter_instances = "sample 1"
+def fetch_instances(vmss, instance_filter: str, client: ComputeManagementClient) -> List[Dict[str, Any]]:
+    if not instance_filter:
+        instance_filter = "sample 1"
 
     try:
         instances = fetch_all_vmss_instances(vmss, client)
-        result = kustolight.filter_resources(instances, filter_instances)
+        result = kustolight.filter_resources(instances, instance_filter)
     except jmespath.exceptions.ParseError:
         raise InterruptExecution("'{}' is an invalid query. Please have a look at the documentation.".format(
-            filter_instances))
+            instance_filter))
 
     return result
 
 
-def fetch_vmss(filter_vmss, configuration, secrets) -> List[dict]:
-    vmss = fetch_resources(filter_vmss, RES_TYPE_VMSS, secrets, configuration)
+def fetch_vmss(vmss_filter, configuration, secrets) -> List[dict]:
+    vmss = fetch_resources(vmss_filter, RES_TYPE_VMSS, secrets, configuration)
     return vmss
 
 

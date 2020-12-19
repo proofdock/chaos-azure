@@ -5,7 +5,6 @@ import os
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
 from msrestazure import azure_cloud
-
 from pdchaosazure.common import cloud
 
 
@@ -110,7 +109,7 @@ def load_timeout(experiment_configuration: Configuration) -> int:
     return result
 
 
-def load_subscription_id(experiment_configuration: Configuration):
+def load_subscription_id(experiment_configuration: Configuration) -> str:
     subscription_id = None
 
     # 1: lookup in experiment definition
@@ -118,16 +117,16 @@ def load_subscription_id(experiment_configuration: Configuration):
         subscription_id = experiment_configuration.get("azure_subscription_id")
 
     if subscription_id:
-        return {'subscription_id': subscription_id}
+        return subscription_id
 
     # 2: lookup in Azure auth file
     az_auth_file = _load_azure_auth_file()
     if az_auth_file:
-        return {'subscription_id': az_auth_file.get('subscriptionId')}
+        return az_auth_file.get('subscriptionId')
 
     # no configuration
     logger.warn("Unable to load subscription id.")
-    return {}
+    return None
 
 
 def _load_azure_auth_file():

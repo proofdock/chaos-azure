@@ -12,15 +12,15 @@ from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_instances
 from pdchaosazure.vmss.records import Records
 
 __all__ = [
-    "burn_io", "deallocate_instance", "delete_instance", "fill_disk", "network_latency",
-    "restart_instance", "stop_instance", "stress_cpu"
+    "burn_io", "deallocate", "delete", "fill_disk", "network_latency",
+    "restart", "stop", "stress_cpu"
 ]
 
 
-def delete_instance(filter_vmss: str = None,
-                    filter_instances: str = None,
-                    configuration: Configuration = None,
-                    secrets: Secrets = None):
+def delete(vmss_filter: str = None,
+           instance_filter: str = None,
+           configuration: Configuration = None,
+           secrets: Secrets = None):
     """Delete instances from the VMSS.
 
     **Be aware**: Deleting a VMSS instance is an invasive action.
@@ -28,23 +28,23 @@ def delete_instance(filter_vmss: str = None,
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(delete_instance.__name__, configuration, filter_vmss))
+        "Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, vmss_filter))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -57,7 +57,7 @@ def delete_instance(filter_vmss: str = None,
 
                 # collect future results
                 futures.append(
-                    executor.submit(__long_poll, delete_instance.__name__, instance, poller, configuration))
+                    executor.submit(__long_poll, delete.__name__, instance, poller, configuration))
 
             # wait for results
             for future in concurrent.futures.as_completed(futures):
@@ -70,32 +70,32 @@ def delete_instance(filter_vmss: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def restart_instance(filter_vmss: str = None,
-                     filter_instances: str = None,
-                     configuration: Configuration = None,
-                     secrets: Secrets = None):
+def restart(vmss_filter: str = None,
+            instance_filter: str = None,
+            configuration: Configuration = None,
+            secrets: Secrets = None):
     """Restart instances from the VMSS.
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}'".format(
-            restart_instance.__name__, configuration, filter_vmss, filter_instances))
+        "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
+            restart.__name__, configuration, vmss_filter, instance_filter))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -108,7 +108,7 @@ def restart_instance(filter_vmss: str = None,
 
                 # collect future results
                 futures.append(
-                    executor.submit(__long_poll, restart_instance.__name__, instance, poller, configuration))
+                    executor.submit(__long_poll, restart.__name__, instance, poller, configuration))
 
             # wait for results
             for future in concurrent.futures.as_completed(futures):
@@ -121,32 +121,32 @@ def restart_instance(filter_vmss: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def stop_instance(filter_vmss: str = None,
-                  filter_instances: str = None,
-                  configuration: Configuration = None,
-                  secrets: Secrets = None):
+def stop(vmss_filter: str = None,
+         instance_filter: str = None,
+         configuration: Configuration = None,
+         secrets: Secrets = None):
     """Stop instances from the VMSS.
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}'".format(
-            stop_instance.__name__, configuration, filter_vmss, filter_instances))
+        "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
+            stop.__name__, configuration, vmss_filter, instance_filter))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -159,7 +159,7 @@ def stop_instance(filter_vmss: str = None,
 
                 # collect future results
                 futures.append(
-                    executor.submit(__long_poll, stop_instance.__name__, instance, poller, configuration))
+                    executor.submit(__long_poll, stop.__name__, instance, poller, configuration))
 
             # wait for results
             for future in concurrent.futures.as_completed(futures):
@@ -172,32 +172,32 @@ def stop_instance(filter_vmss: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def deallocate_instance(filter_vmss: str = None,
-                        filter_instances: str = None,
-                        configuration: Configuration = None,
-                        secrets: Secrets = None):
+def deallocate(vmss_filter: str = None,
+               instance_filter: str = None,
+               configuration: Configuration = None,
+               secrets: Secrets = None):
     """Deallocate instances from the VMSS.
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}'".format(
-            deallocate_instance.__name__, configuration, filter_vmss, filter_instances))
+        "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
+            deallocate.__name__, configuration, vmss_filter, instance_filter))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -213,7 +213,7 @@ def deallocate_instance(filter_vmss: str = None,
                 # collect future results
                 futures.append(
                     executor.submit(
-                        __long_poll, deallocate_instance.__name__, instance, poller, configuration))
+                        __long_poll, deallocate.__name__, instance, poller, configuration))
 
             # wait for results
             for future in concurrent.futures.as_completed(futures):
@@ -226,8 +226,8 @@ def deallocate_instance(filter_vmss: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def stress_cpu(filter_vmss: str = None,
-               filter_instances: str = None,
+def stress_cpu(vmss_filter: str = None,
+               instance_filter: str = None,
                duration: int = 120,
                configuration: Configuration = None,
                secrets: Secrets = None):
@@ -235,10 +235,10 @@ def stress_cpu(filter_vmss: str = None,
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
 
@@ -248,17 +248,17 @@ def stress_cpu(filter_vmss: str = None,
 
     operation_name = stress_cpu.__name__
 
-    logger.debug("Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', duration='{}'".format(
-        operation_name, configuration, filter_vmss, filter_instances, duration))
+    logger.debug("Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}', duration='{}'".format(
+        operation_name, configuration, vmss_filter, instance_filter, duration))
 
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     client = init_client(secrets, configuration)
 
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -283,8 +283,8 @@ def stress_cpu(filter_vmss: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def burn_io(filter_vmss: str = None,
-            filter_instances: str = None,
+def burn_io(vmss_filter: str = None,
+            instance_filter: str = None,
             duration: int = 60,
             path: str = None,
             configuration: Configuration = None,
@@ -293,10 +293,10 @@ def burn_io(filter_vmss: str = None,
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
 
@@ -309,16 +309,16 @@ def burn_io(filter_vmss: str = None,
     """
     operation_name = burn_io.__name__
     logger.debug(
-        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', duration='{}',".format(
-            operation_name, configuration, filter_vmss, filter_instances, duration))
+        "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}', duration='{}',".format(
+            operation_name, configuration, vmss_filter, instance_filter, duration))
 
     client = init_client(secrets, configuration)
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -344,8 +344,8 @@ def burn_io(filter_vmss: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def fill_disk(filter_vmss: str = None,
-              filter_instances: Iterable[Mapping[str, any]] = None,
+def fill_disk(vmss_filter: str = None,
+              instance_filter: Iterable[Mapping[str, any]] = None,
               duration: int = 120,
               size: int = 1000,
               path: str = None,
@@ -355,10 +355,10 @@ def fill_disk(filter_vmss: str = None,
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
 
@@ -375,18 +375,18 @@ def fill_disk(filter_vmss: str = None,
     operation_name = fill_disk.__name__
 
     logger.debug(
-        "Starting {}: configuration='{}', filter_vmss='{}', filter_instances='{}', "
+        "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}', "
         "duration='{}', size='{}', path='{}'".format(
-            operation_name, configuration, filter_vmss, filter_instances, duration, size, path))
+            operation_name, configuration, vmss_filter, instance_filter, duration, size, path))
 
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     client = init_client(secrets, configuration)
 
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -413,8 +413,8 @@ def fill_disk(filter_vmss: str = None,
     return vmss_records.output_as_dict('resources')
 
 
-def network_latency(filter_vmss: str = None,
-                    filter_instances: str = None,
+def network_latency(vmss_filter: str = None,
+                    instance_filter: str = None,
                     duration: int = 60,
                     delay: int = 200,
                     jitter: int = 50,
@@ -427,10 +427,10 @@ def network_latency(filter_vmss: str = None,
 
     Parameters
     ----------
-    filter_vmss : str, optional
+    vmss_filter : str, optional
         Filter the virtual machine scale set(s). If omitted a random VMSS from your subscription is selected.
 
-    filter_instances : str, optional
+    instance_filter : str, optional
         KQLL: Filter the instances of the selected virtual machine scale set(s). If omitted
         a random instance from your VMSS is selected.
 
@@ -452,14 +452,14 @@ def network_latency(filter_vmss: str = None,
         " delay='{}', jitter='{}', network_interface='{}'".format(
             operation_name, configuration, filter, duration, delay, jitter, network_interface))
 
-    vmss_list = fetch_vmss(filter_vmss, configuration, secrets)
+    vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     client = init_client(secrets, configuration)
 
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, filter_instances, client)
+        instances = fetch_instances(vmss, instance_filter, client)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
