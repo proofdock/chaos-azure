@@ -1,12 +1,12 @@
-from unittest.mock import MagicMock, patch, ANY
-
-from azure.mgmt.compute import ComputeManagementClient
+from unittest.mock import ANY, MagicMock, patch
 
 import pdchaosazure
+from azure.mgmt.compute import ComputeManagementClient
 from pdchaosazure.common import config
-from pdchaosazure.machine.actions import (burn_io, fill_disk, delete_machines, network_latency,
-                                          restart_machines, stop_machines, stress_cpu)
-from tests.data import machine_provider, config_provider, secrets_provider
+from pdchaosazure.vm.actions import (burn_io, delete, fill_disk,
+                                     network_latency, restart, stop,
+                                     stress_cpu)
+from tests.data import config_provider, machine_provider, secrets_provider
 
 MACHINE_ALPHA = {
     'name': 'VirtualMachineAlpha',
@@ -22,8 +22,8 @@ class AnyStringWith(str):
         return self in other
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 def test_delete_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -34,14 +34,14 @@ def test_delete_one_machine(init, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 1"
-    delete_machines(f, configuration, secrets)
+    delete(f, configuration, secrets)
 
     fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.delete.call_count == 1
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 def test_delete_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -52,14 +52,14 @@ def test_delete_two_machines(init, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 2"
-    delete_machines(f, configuration, secrets)
+    delete(f, configuration, secrets)
 
     fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.delete.call_count == 2
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 def test_stop_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -71,14 +71,14 @@ def test_stop_one_machine(init, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 1"
-    stop_machines(f, configuration, secrets)
+    stop(f, configuration, secrets)
 
     fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.power_off.call_count == 1
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 def test_stop_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -89,14 +89,14 @@ def test_stop_two_machines(init, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 2"
-    stop_machines(f, configuration, secrets)
+    stop(f, configuration, secrets)
 
     fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.power_off.call_count == 2
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 def test_restart_one_machine(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -107,14 +107,14 @@ def test_restart_one_machine(init, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 1"
-    restart_machines(f, configuration, secrets)
+    restart(f, configuration, secrets)
 
     fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.restart.call_count == 1
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 def test_restart_two_machines(init, fetch):
     client = MagicMock()
     init.return_value = client
@@ -125,14 +125,14 @@ def test_restart_two_machines(init, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     f = "where resourceGroup=='myresourcegroup' | sample 2"
-    restart_machines(f, configuration, secrets)
+    restart(f, configuration, secrets)
 
     fetch.assert_called_with(f, configuration, secrets)
     assert client.virtual_machines.restart.call_count == 2
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_stress_cpu(mocked_command_run, mocked_init_client, fetch):
     # arrange mocks
@@ -158,8 +158,8 @@ def test_stress_cpu(mocked_command_run, mocked_init_client, fetch):
         machine['resourceGroup'], machine, duration + timeout, parameters=ANY, client=mocked_client)
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_client, fetch):
@@ -188,8 +188,8 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_
         machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_network_latency(mocked_command_run, mocked_init_client, fetch):
     # arrange mocks
@@ -217,8 +217,8 @@ def test_network_latency(mocked_command_run, mocked_init_client, fetch):
         machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)
 
 
-@patch('pdchaosazure.machine.actions.fetch_machines', autospec=True)
-@patch('pdchaosazure.machine.actions.init_client', autospec=True)
+@patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
+@patch('pdchaosazure.vm.actions.init_client', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_burn_io(mocked_command_run, mocked_init_client, fetch):
     # arrange mocks

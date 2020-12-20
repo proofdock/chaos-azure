@@ -39,14 +39,14 @@ def __load_exported_activities() -> List[DiscoveredActivities]:
     activities = []
 
     # actions
-    activities.extend(discover_actions("pdchaosazure.aks.actions"))
-    activities.extend(discover_actions("pdchaosazure.machine.actions"))
+    activities.extend(discover_actions("pdchaosazure.vm.actions"))
     activities.extend(discover_actions("pdchaosazure.vmss.actions"))
     activities.extend(discover_actions("pdchaosazure.webapp.actions"))
 
     # probes
-    activities.extend(discover_probes("pdchaosazure.machine.probes"))
+    activities.extend(discover_probes("pdchaosazure.vm.probes"))
     activities.extend(discover_probes("pdchaosazure.vmss.probes"))
     activities.extend(discover_probes("pdchaosazure.webapp.probes"))
+    activities.extend(discover_probes("pdchaosazure.monitor.probes"))
 
     return activities

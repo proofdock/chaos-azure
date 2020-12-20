@@ -62,10 +62,10 @@ def test_load_subscription_from_experiment_dict():
     }
 
     # act
-    configuration = config.load_subscription_id(experiment_configuration)
+    subscription_id = config.load_subscription_id(experiment_configuration)
 
     # assert
-    assert configuration.get('subscription_id') == "AZURE_SUBSCRIPTION_ID"
+    assert subscription_id == "AZURE_SUBSCRIPTION_ID"
 
 
 def test_load_subscription_from_credential_file(monkeypatch):
@@ -76,10 +76,10 @@ def test_load_subscription_from_credential_file(monkeypatch):
         os.path.join(settings_dir, 'credentials.json'))
 
     # act
-    configuration = config.load_subscription_id(experiment_configuration)
+    subscription_id = config.load_subscription_id(experiment_configuration)
 
     # assert
-    assert configuration.get('subscription_id') == "AZURE_SUBSCRIPTION_ID"
+    assert subscription_id == "AZURE_SUBSCRIPTION_ID"
 
 
 def test_load_explicit_timeout_from_experiment_dict():

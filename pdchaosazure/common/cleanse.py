@@ -1,3 +1,6 @@
+from typing import List
+
+
 def machine(resource: dict) -> dict:
     """
     Free the virtual machine dictionary from unwanted keys listed below.
@@ -32,7 +35,7 @@ def vmss_instance(resource: dict) -> dict:
     return __cleanse(cleanse, resource)
 
 
-def __cleanse(cleanse_list: [], resource: dict) -> dict:
+def __cleanse(cleanse_list: List[str], resource: dict) -> dict:
     for key in cleanse_list:
         if key in resource:
             del resource[key]

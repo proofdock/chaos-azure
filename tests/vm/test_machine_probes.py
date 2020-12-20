@@ -1,13 +1,13 @@
 from unittest.mock import patch
 
-from pdchaosazure.machine.probes import count_machines, describe_machines
+from pdchaosazure.vm.probes import count_machines, describe_machines
 
 resource = {
     'name': 'chaos-machine',
     'resourceGroup': 'rg'}
 
 
-@patch('pdchaosazure.machine.probes.fetch_resources', autospec=True)
+@patch('pdchaosazure.vm.probes.fetch_resources', autospec=True)
 def test_count_machines(fetch):
     resource_list = [resource]
     fetch.return_value = resource_list
@@ -17,7 +17,7 @@ def test_count_machines(fetch):
     assert count == 1
 
 
-@patch('pdchaosazure.machine.probes.fetch_resources', autospec=True)
+@patch('pdchaosazure.vm.probes.fetch_resources', autospec=True)
 def test_describe_machines(fetch):
     resource_list = [resource]
     fetch.return_value = resource_list

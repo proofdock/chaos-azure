@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
+from pdchaosazure.vmss.records import Records
 
 from chaoslib.exceptions import FailedActivity
 from chaoslib.types import Configuration, Secrets
@@ -9,17 +10,15 @@ from msrestazure import azure_exceptions
 from pdchaosazure.common import cleanse, config
 from pdchaosazure.common.compute import command, init_client
 
-__all__ = ["burn_io", "delete_machines", "fill_disk", "network_latency",
-           "restart_machines", "stop_machines", "stress_cpu"]
+__all__ = ["burn_io", "delete", "fill_disk", "network_latency",
+           "restart", "stop", "stress_cpu"]
 
-from pdchaosazure.machine.fetcher import fetch_machines
-
-from pdchaosazure.vmss.records import Records
+from pdchaosazure.vm.fetcher import fetch_machines
 
 
-def delete_machines(filter: str = None,
-                    configuration: Configuration = None,
-                    secrets: Secrets = None):
+def delete(filter: str = None,
+           configuration: Configuration = None,
+           secrets: Secrets = None):
     """Delete virtual machine instance(s).
 
     **Be aware**: Deleting a machine instance is an invasive action. You will not be
@@ -31,7 +30,7 @@ def delete_machines(filter: str = None,
         Filter the virtual machine instance(s). If omitted a random instance from your subscription is selected.
     """
     logger.debug(
-        "Starting {}: configuration='{}', filter='{}'".format(delete_machines.__name__, configuration, filter))
+        "Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -48,7 +47,7 @@ def delete_machines(filter: str = None,
                 raise FailedActivity(e.message)
 
             # collect future results
-            futures.append(executor.submit(__long_poll, delete_machines.__name__, machine, poller, configuration))
+            futures.append(executor.submit(__long_poll, delete.__name__, machine, poller, configuration))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -58,9 +57,9 @@ def delete_machines(filter: str = None,
     return machine_records.output_as_dict('resources')
 
 
-def stop_machines(filter: str = None,
-                  configuration: Configuration = None,
-                  secrets: Secrets = None):
+def stop(filter: str = None,
+         configuration: Configuration = None,
+         secrets: Secrets = None):
     """Stop virtual machine instance(s).
 
     Parameters
@@ -68,7 +67,7 @@ def stop_machines(filter: str = None,
     filter : str, optional
         Filter the virtual machine instance(s). If omitted a random instance from your subscription is selected.
     """
-    logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop_machines.__name__, configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -86,7 +85,7 @@ def stop_machines(filter: str = None,
                 raise FailedActivity(e.message)
 
             # collect future results
-            futures.append(executor.submit(__long_poll, stop_machines.__name__, machine, poller, configuration))
+            futures.append(executor.submit(__long_poll, stop.__name__, machine, poller, configuration))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -96,9 +95,9 @@ def stop_machines(filter: str = None,
     return machine_records.output_as_dict('resources')
 
 
-def restart_machines(filter: str = None,
-                     configuration: Configuration = None,
-                     secrets: Secrets = None):
+def restart(filter: str = None,
+            configuration: Configuration = None,
+            secrets: Secrets = None):
     """Restart virtual machine instance(s).
 
     Parameters
@@ -107,7 +106,7 @@ def restart_machines(filter: str = None,
         Filter the virtual machine instance(s). If omitted a random instance from your subscription is selected.
     """
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(
-        restart_machines.__name__, configuration, filter))
+        restart.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -124,7 +123,7 @@ def restart_machines(filter: str = None,
                 raise FailedActivity(e.message)
 
             # collect future results
-            futures.append(executor.submit(__long_poll, restart_machines.__name__, machine, poller, configuration))
+            futures.append(executor.submit(__long_poll, restart.__name__, machine, poller, configuration))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):

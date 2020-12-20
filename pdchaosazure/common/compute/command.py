@@ -5,7 +5,7 @@ from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
 from msrestazure import azure_exceptions
 
-from pdchaosazure.machine.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
+from pdchaosazure.vm.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
 
 UNSUPPORTED_WINDOWS_SCRIPTS = ['network_latency']

@@ -2,7 +2,7 @@
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
 
-from pdchaosazure.machine.constants import RES_TYPE_VM
+from pdchaosazure.vm.constants import RES_TYPE_VM
 from pdchaosazure.common.resources.graph import fetch_resources
 
 __all__ = ["describe_machines", "count_machines"]

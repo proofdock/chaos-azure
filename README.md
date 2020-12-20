@@ -175,7 +175,7 @@ Here is a full example for an experiment containing secrets and configuration:
       "name": "restart-node-at-random",
       "provider": {
         "type": "python",
-        "module": "pdchaosazure.machine.actions",
+        "module": "pdchaosazure.vm.actions",
         "func": "restart_machines",
         "secrets": ["azure"],
         "config": ["azure_subscription_id"]

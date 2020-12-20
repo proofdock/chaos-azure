@@ -1,7 +1,7 @@
 from typing import List
 
 from pdchaosazure.common.resources.graph import fetch_resources
-from pdchaosazure.machine.constants import RES_TYPE_VM
+from pdchaosazure.vm.constants import RES_TYPE_VM
 
 
 def fetch_machines(filter, configuration, secrets) -> List[dict]:

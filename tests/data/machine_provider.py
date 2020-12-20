@@ -1,4 +1,4 @@
-from pdchaosazure.machine.constants import RES_TYPE_VM
+from pdchaosazure.vm.constants import RES_TYPE_VM
 
 
 def default(os_type: str = 'Linux'):
