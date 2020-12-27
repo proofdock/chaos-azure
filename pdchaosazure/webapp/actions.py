@@ -1,21 +1,20 @@
-from chaoslib import Secrets, Configuration
+from chaoslib import Configuration, Secrets
 from chaoslib.exceptions import FailedActivity
 from logzero import logger
 from msrestazure import azure_exceptions
-
 from pdchaosazure.common import cleanse
 from pdchaosazure.vmss.records import Records
 from pdchaosazure.webapp import init_client
 
 # sort alphabetically to find 'em quicker
-__all__ = ["delete_webapp", "restart_webapp", "stop_webapp"]
+__all__ = ["delete", "restart", "stop"]
 
 from pdchaosazure.webapp.fetcher import fetch_webapps
 
 
-def stop_webapp(filter: str = None,
-                configuration: Configuration = None,
-                secrets: Secrets = None):
+def stop(filter: str = None,
+         configuration: Configuration = None,
+         secrets: Secrets = None):
     """Stop web app instances.
 
     Parameters
@@ -23,7 +22,7 @@ def stop_webapp(filter: str = None,
     filter : str, optional
         Filter the web app instance(s). If omitted a random instance from your subscription is selected.
     """
-    logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop_webapp.__name__, configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop.__name__, configuration, filter))
 
     client = init_client(secrets, configuration)
     webapps = fetch_webapps(filter, configuration, secrets)
@@ -41,9 +40,9 @@ def stop_webapp(filter: str = None,
     return webapps_records.output_as_dict('resources')
 
 
-def restart_webapp(filter: str = None,
-                   configuration: Configuration = None,
-                   secrets: Secrets = None):
+def restart(filter: str = None,
+            configuration: Configuration = None,
+            secrets: Secrets = None):
     """Restart web app instances.
 
     Parameters
@@ -51,7 +50,7 @@ def restart_webapp(filter: str = None,
     filter : str, optional
         Filter the web app instance(s). If omitted a random instance from your subscription is selected.
     """
-    logger.debug("Starting {}: configuration='{}', filter='{}'".format(restart_webapp.__name__, configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(restart.__name__, configuration, filter))
 
     webapps = fetch_webapps(filter, configuration, secrets)
     client = init_client(secrets, configuration)
@@ -68,9 +67,9 @@ def restart_webapp(filter: str = None,
     return webapps_records.output_as_dict('resources')
 
 
-def delete_webapp(filter: str = None,
-                  configuration: Configuration = None,
-                  secrets: Secrets = None):
+def delete(filter: str = None,
+           configuration: Configuration = None,
+           secrets: Secrets = None):
     """Delete web app instances.
 
     **Be aware**: Deleting a web app is an invasive action. You will not be
@@ -81,7 +80,7 @@ def delete_webapp(filter: str = None,
     filter : str, optional
         Filter the web app instance(s). If omitted a random instance from your subscription is selected.
     """
-    logger.debug("Starting {}: configuration='{}', filter='{}'".format(delete_webapp.__name__, configuration, filter))
+    logger.debug("Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, filter))
 
     webapps = fetch_webapps(filter, configuration, secrets)
     client = init_client(secrets, configuration)
