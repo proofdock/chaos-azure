@@ -5,7 +5,6 @@ import os
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
 from msrestazure import azure_cloud
-from pdchaosazure.common import cloud
 
 
 def load_secrets(experiment_secrets: Secrets):
@@ -24,35 +23,19 @@ def load_secrets(experiment_secrets: Secrets):
         # always available
         "cloud": "variable contains msrest cloud object"
 
-        # optional - available if user authenticate with service principal
+        # always available: authentication with service principal
         "client_id": "variable contains client id",
         "client_secret": "variable contains client secret",
         "tenant_id": "variable contains tenant id",
 
-        # optional - available if user authenticate with existing token
-        "access_token": "variable contains access token",
-    }
-    ```
-
-    :Loading secrets from experiment file:
-
-    Function will try to load following secrets from the experiment file:
-    ```json
-    {
-        "azure": {
-            "client_id": "AZURE_CLIENT_ID",
-            "client_secret": "AZURE_CLIENT_SECRET",
-            "tenant_id": "AZURE_TENANT_ID",
-            "access_token": "AZURE_ACCESS_TOKEN"
-        }
     }
     ```
 
     :Loading secrets from azure credential file:
 
-    If experiment file contains no secrets, function will try to load secrets
-    from the azure credential file. Path to the file should be set under
-    AZURE_AUTH_LOCATION environment variable.
+    Function will try to load secrets from the
+    azure credential file. Path to the file should
+    be set under AZURE_AUTH_LOCATION environment variable.
 
     Function will try to load following secrets from azure credential file:
     ```json
@@ -69,25 +52,14 @@ def load_secrets(experiment_secrets: Secrets):
 
     """
 
-    # 1: lookup for secrets in experiment  file
-    if experiment_secrets:
+    # lookup for credentials in azure auth file
+    credentials = _load_credentials_from_auth_file()
+    if credentials:
+        rm_endpoint = credentials.get('resourceManagerEndpointUrl')
         return {
-            'client_id': experiment_secrets.get('client_id'),
-            'client_secret': experiment_secrets.get('client_secret'),
-            'tenant_id': experiment_secrets.get('tenant_id'),
-            # load cloud object
-            'cloud': cloud.get_or_raise(experiment_secrets.get('azure_cloud')),
-            'access_token': experiment_secrets.get('access_token'),
-        }
-
-    # 2: lookup for credentials in azure auth file
-    az_auth_file = _load_azure_auth_file()
-    if az_auth_file:
-        rm_endpoint = az_auth_file.get('resourceManagerEndpointUrl')
-        return {
-            'client_id': az_auth_file.get('clientId'),
-            'client_secret': az_auth_file.get('clientSecret'),
-            'tenant_id': az_auth_file.get('tenantId'),
+            'client_id': credentials.get('clientId'),
+            'client_secret': credentials.get('clientSecret'),
+            'tenant_id': credentials.get('tenantId'),
             # load cloud object
             'cloud': azure_cloud.get_cloud_from_metadata_endpoint(rm_endpoint),
             # access token is not supported for credential files
@@ -110,26 +82,17 @@ def load_timeout(experiment_configuration: Configuration) -> int:
 
 
 def load_subscription_id(experiment_configuration: Configuration) -> str:
-    subscription_id = None
-
-    # 1: lookup in experiment definition
-    if experiment_configuration:
-        subscription_id = experiment_configuration.get("azure_subscription_id")
-
-    if subscription_id:
-        return subscription_id
-
-    # 2: lookup in Azure auth file
-    az_auth_file = _load_azure_auth_file()
-    if az_auth_file:
-        return az_auth_file.get('subscriptionId')
+    # lookup in Azure auth file
+    credentials = _load_credentials_from_auth_file()
+    if credentials:
+        return credentials.get('subscriptionId')
 
     # no configuration
     logger.warn("Unable to load subscription id.")
     return None
 
 
-def _load_azure_auth_file():
+def _load_credentials_from_auth_file():
     auth_path = os.environ.get('AZURE_AUTH_LOCATION')
     credential_file = {}
     if auth_path and os.path.exists(auth_path):

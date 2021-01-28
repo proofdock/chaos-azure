@@ -1,13 +1,13 @@
 import concurrent.futures
 from typing import Iterable, Mapping
 
+from azure.core.exceptions import HttpResponseError
 from chaoslib import Configuration, Secrets
 from chaoslib.exceptions import FailedActivity
 from logzero import logger
-from msrestazure import azure_exceptions
 
 from pdchaosazure.common import cleanse, config
-from pdchaosazure.common.compute import command, init_client
+from pdchaosazure.common.compute import command, client
 from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_instances
 from pdchaosazure.vmss.records import Records
 
@@ -38,21 +38,21 @@ def delete(vmss_filter: str = None,
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, vmss_filter))
 
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 try:
-                    poller = client.virtual_machine_scale_set_vms.delete(
+                    poller = clnt.virtual_machine_scale_set_vms.begin_delete(
                         vmss['resourceGroup'], vmss['name'], instance['instance_id'])
-                except azure_exceptions.CloudError as e:
+                except HttpResponseError as e:
                     raise FailedActivity(e.message)
 
                 # collect future results
@@ -89,21 +89,21 @@ def restart(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
             restart.__name__, configuration, vmss_filter, instance_filter))
 
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 try:
-                    poller = client.virtual_machine_scale_set_vms.restart(
+                    poller = clnt.virtual_machine_scale_set_vms.begin_restart(
                         vmss['resourceGroup'], vmss['name'], instance['instance_id'])
-                except azure_exceptions.CloudError as e:
+                except HttpResponseError as e:
                     raise FailedActivity(e.message)
 
                 # collect future results
@@ -140,21 +140,21 @@ def stop(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
             stop.__name__, configuration, vmss_filter, instance_filter))
 
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
             for instance in instances:
                 try:
-                    poller = client.virtual_machine_scale_set_vms.power_off(
+                    poller = clnt.virtual_machine_scale_set_vms.begin_power_off(
                         vmss['resourceGroup'], vmss['name'], instance['instance_id'])
-                except azure_exceptions.CloudError as e:
+                except HttpResponseError as e:
                     raise FailedActivity(e.message)
 
                 # collect future results
@@ -191,13 +191,13 @@ def deallocate(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
             deallocate.__name__, configuration, vmss_filter, instance_filter))
 
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -205,9 +205,9 @@ def deallocate(vmss_filter: str = None,
                 logger.debug("Deallocating instance: {}".format(instance['name']))
 
                 try:
-                    poller = client.virtual_machine_scale_set_vms.deallocate(
+                    poller = clnt.virtual_machine_scale_set_vms.begin_deallocate(
                         vmss['resourceGroup'], vmss['name'], instance['instance_id'])
-                except azure_exceptions.CloudError as e:
+                except HttpResponseError as e:
                     raise FailedActivity(e.message)
 
                 # collect future results
@@ -252,13 +252,13 @@ def stress_cpu(vmss_filter: str = None,
         operation_name, configuration, vmss_filter, instance_filter, duration))
 
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -270,7 +270,7 @@ def stress_cpu(vmss_filter: str = None,
                 futures.append(
                     executor.submit(
                         __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
-                        configuration, client))
+                        configuration, clnt))
 
             # wait for future results
             for future in concurrent.futures.as_completed(futures):
@@ -312,13 +312,13 @@ def burn_io(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}', duration='{}',".format(
             operation_name, configuration, vmss_filter, instance_filter, duration))
 
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -331,7 +331,7 @@ def burn_io(vmss_filter: str = None,
                 futures.append(
                     executor.submit(
                         __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
-                        configuration, client))
+                        configuration, clnt))
 
             # wait for the results
             for future in concurrent.futures.as_completed(futures):
@@ -380,13 +380,13 @@ def fill_disk(vmss_filter: str = None,
             operation_name, configuration, vmss_filter, instance_filter, duration, size, path))
 
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -400,7 +400,7 @@ def fill_disk(vmss_filter: str = None,
                 futures.append(
                     executor.submit(
                         __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
-                        configuration, client))
+                        configuration, clnt))
 
             # wait for the results
             for future in concurrent.futures.as_completed(futures):
@@ -453,13 +453,13 @@ def network_latency(vmss_filter: str = None,
             operation_name, configuration, filter, duration, delay, jitter, network_interface))
 
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     vmss_records = Records()
 
     for vmss in vmss_list:
         instances_records = Records()
-        instances = fetch_instances(vmss, instance_filter, client)
+        instances = fetch_instances(vmss, instance_filter, clnt)
 
         futures = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(instances)) as executor:
@@ -473,7 +473,7 @@ def network_latency(vmss_filter: str = None,
                 futures.append(
                     executor.submit(
                         __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration,
-                        parameters, configuration, client))
+                        parameters, configuration, clnt))
 
             # wait for the results
             for future in concurrent.futures.as_completed(futures):

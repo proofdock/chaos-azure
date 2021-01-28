@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from azure.mgmt.monitor.models import (MetricAlertStatus,
-                                       MetricAlertStatusProperties)
+from azure.mgmt.monitor.models import MetricAlertStatus, MetricAlertStatusProperties
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
-from pdchaosazure.common.monitor import init_client
+
+from pdchaosazure.common.monitor import client
 
 __all__ = ["is_alert_healthy"]
 
@@ -25,10 +25,10 @@ def is_alert_healthy(
     """
     logger.debug(
         "Starting {}: resource_group='{}', alert_rule='{}', configuration='{}'"
-        .format(is_alert_healthy.__name__, resource_group, alert_rule, configuration))
+            .format(is_alert_healthy.__name__, resource_group, alert_rule, configuration))
 
-    client = init_client(secrets, configuration)
-    collection = client.metric_alerts_status.list(resource_group_name=resource_group, rule_name=alert_rule)
+    clnt = client.init(secrets, configuration)
+    collection = clnt.metric_alerts_status.list(resource_group_name=resource_group, rule_name=alert_rule)
     for status in collection.value:
         status = MetricAlertStatus(status)
         properties = MetricAlertStatusProperties(status.properties)

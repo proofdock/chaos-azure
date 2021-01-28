@@ -1,9 +1,9 @@
 import os
 
+from azure.core.exceptions import HttpResponseError
 from azure.mgmt.compute import ComputeManagementClient
 from chaoslib.exceptions import FailedActivity, InterruptExecution
 from logzero import logger
-from msrestazure import azure_exceptions
 
 from pdchaosazure.vm.constants import OS_LINUX, OS_WINDOWS, RES_TYPE_VM
 from pdchaosazure.vmss.constants import RES_TYPE_VMSS_VM
@@ -50,18 +50,18 @@ def run(resource_group: str, compute: dict, timeout: int, parameters: dict, clie
 
     try:
         if compute_type == RES_TYPE_VMSS_VM.lower():
-            poller = client.virtual_machine_scale_set_vms.run_command(
+            poller = client.virtual_machine_scale_set_vms.begin_run_command(
                 resource_group, compute['scale_set'], compute['instance_id'], parameters)
 
         elif compute_type == RES_TYPE_VM.lower():
-            poller = client.virtual_machines.run_command(
+            poller = client.virtual_machines.begin_run_command(
                 resource_group, compute['name'], parameters)
 
         else:
             msg = "Running a command for the unknown resource type '{}'".format(compute.get('type'))
             raise InterruptExecution(msg)
 
-    except azure_exceptions.CloudError as e:
+    except HttpResponseError as e:
         raise FailedActivity(e.message)
 
     result = poller.result(timeout)  # Blocking till executed

@@ -1,14 +1,10 @@
 import contextlib
 from typing import Dict
+from urllib.parse import urlparse
 
+from azure.identity import ClientSecretCredential
 from chaoslib.exceptions import InterruptExecution
-from msrest.exceptions import AuthenticationError
 from msrestazure.azure_active_directory import AADMixin
-
-from pdchaosazure.auth.authentication import ServicePrincipalAuth, TokenAuth
-
-AAD_TOKEN = "aad_token"
-SERVICE_PRINCIPAL = "service_principal"
 
 
 @contextlib.contextmanager
@@ -42,11 +38,6 @@ def auth(secrets: Dict) -> AADMixin:
     }
     ```
 
-    If the `client_secret` is not provided, then token based credentials is
-    assumed and an `access_token` value must be present in `secrets` object
-    and updated when the token expires.
-    ```
-
     Using this function goes as follows:
 
     ```python
@@ -69,43 +60,13 @@ def auth(secrets: Dict) -> AADMixin:
 
     """
 
-    # No input validation needed:
-    # 1) Either no secrets are passed at all - chaostoolkit-lib
-    #    will handle it for us *or*
-    # 2) Secret arguments are partially missing or invalid - we
-    #    rely on the ms azure library
-    yield __create(secrets)
-
-
-##################
-# HELPER FUNCTIONS
-##################
-
-def __create(secrets: Dict) -> AADMixin:
-    _auth_type = __authentication_type(secrets)
-
-    if _auth_type == SERVICE_PRINCIPAL:
-        _authentication = ServicePrincipalAuth()
-
-    elif _auth_type == AAD_TOKEN:
-        _authentication = TokenAuth()
-
     try:
-        result = _authentication.create(secrets)
-        return result
-    except AuthenticationError as e:
-        msg = e.inner_exception.error_response.get('error_description')
-        raise InterruptExecution(msg)
-
-
-def __authentication_type(secrets: dict) -> str:
-    if 'client_secret' in secrets and secrets['client_secret']:
-        return SERVICE_PRINCIPAL
-
-    elif 'access_token' in secrets and secrets['access_token']:
-        return AAD_TOKEN
-
-    else:
-        raise InterruptExecution(
-            "Authentication to Azure requires a"
-            " client secret or an access token")
+        credential = ClientSecretCredential(
+            tenant_id=secrets.get('tenant_id'),
+            client_id=secrets.get('client_id'),
+            client_secret=secrets.get('client_secret'),
+            authority=urlparse(secrets.get('cloud').endpoints.active_directory).hostname
+        )
+    except ValueError as e:
+        raise InterruptExecution(str(e))
+    yield credential

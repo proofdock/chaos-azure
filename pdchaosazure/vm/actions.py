@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
-from pdchaosazure.vmss.records import Records
 
+from azure.core.exceptions import HttpResponseError
+from azure.core.polling import LROPoller
 from chaoslib.exceptions import FailedActivity
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
-from msrestazure import azure_exceptions
 
 from pdchaosazure.common import cleanse, config
-from pdchaosazure.common.compute import command, init_client
+from pdchaosazure.common.compute import command, client
+from pdchaosazure.vmss.records import Records
 
 __all__ = ["burn_io", "delete", "fill_disk", "network_latency",
            "restart", "stop", "stress_cpu"]
@@ -33,7 +34,7 @@ def delete(filter: str = None,
         "Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     machine_records = Records()
 
     futures = []
@@ -42,8 +43,8 @@ def delete(filter: str = None,
             logger.debug("Deleting machine: {}".format(machine['name']))
 
             try:
-                poller = client.virtual_machines.delete(machine['resourceGroup'], machine['name'])
-            except azure_exceptions.CloudError as e:
+                poller = clnt.virtual_machines.begin_delete(machine['resourceGroup'], machine['name'])
+            except HttpResponseError as e:
                 raise FailedActivity(e.message)
 
             # collect future results
@@ -70,7 +71,7 @@ def stop(filter: str = None,
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     machine_records = Records()
 
@@ -80,8 +81,8 @@ def stop(filter: str = None,
             logger.debug("Stopping machine '{}'".format(machine['name']))
 
             try:
-                poller = client.virtual_machines.power_off(machine['resourceGroup'], machine['name'])
-            except azure_exceptions.CloudError as e:
+                poller = clnt.virtual_machines.begin_power_off(machine['resourceGroup'], machine['name'])
+            except HttpResponseError as e:
                 raise FailedActivity(e.message)
 
             # collect future results
@@ -109,7 +110,7 @@ def restart(filter: str = None,
         restart.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     machine_records = Records()
 
     futures = []
@@ -118,8 +119,8 @@ def restart(filter: str = None,
             logger.debug("Restarting machine: {}".format(machine['name']))
 
             try:
-                poller = client.virtual_machines.restart(machine['resourceGroup'], machine['name'])
-            except azure_exceptions.CloudError as e:
+                poller = clnt.virtual_machines.begin_restart(machine['resourceGroup'], machine['name'])
+            except HttpResponseError as e:
                 raise FailedActivity(e.message)
 
             # collect future results
@@ -155,7 +156,7 @@ def stress_cpu(filter: str = None,
             operation_name, configuration, filter, duration))
 
     machines = fetch_machines(filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     machine_records = Records()
     futures = []
@@ -167,7 +168,7 @@ def stress_cpu(filter: str = None,
             # collect future results
             futures.append(
                 executor.submit(
-                    __long_poll_command, operation_name, machine, duration, parameters, configuration, client))
+                    __long_poll_command, operation_name, machine, duration, parameters, configuration, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -205,7 +206,7 @@ def fill_disk(filter: str = None,
         fill_disk.__name__, configuration, filter, duration, size, path))
 
     machines = fetch_machines(filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     machine_records = Records()
 
@@ -220,7 +221,7 @@ def fill_disk(filter: str = None,
             # collect future results
             futures.append(
                 executor.submit(
-                    __long_poll_command, fill_disk.__name__, machine, duration, parameters, configuration, client))
+                    __long_poll_command, fill_disk.__name__, machine, duration, parameters, configuration, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -266,7 +267,7 @@ def network_latency(filter: str = None,
             operation_name, configuration, filter, duration, delay, jitter, network_interface))
 
     machines = fetch_machines(filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     machine_records = Records()
 
@@ -282,8 +283,7 @@ def network_latency(filter: str = None,
             # collect future results
             futures.append(
                 executor.submit(
-                    __long_poll_command, operation_name, machine, duration, parameters, configuration,
-                    client))
+                    __long_poll_command, operation_name, machine, duration, parameters, configuration, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -318,7 +318,7 @@ def burn_io(filter: str = None,
             burn_io.__name__, configuration, filter, duration))
 
     machines = fetch_machines(filter, configuration, secrets)
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
 
     machine_records = Records()
 
@@ -332,7 +332,7 @@ def burn_io(filter: str = None,
             # collect future results
             futures.append(
                 executor.submit(
-                    __long_poll_command, burn_io.__name__, machine, duration, parameters, configuration, client))
+                    __long_poll_command, burn_io.__name__, machine, duration, parameters, configuration, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -345,7 +345,7 @@ def burn_io(filter: str = None,
 ###########################
 #  PRIVATE HELPER FUNCTIONS
 ###########################
-def __long_poll(activity, machine, poller, configuration):
+def __long_poll(activity, machine, poller: LROPoller, configuration):
     logger.debug("Waiting for operation '{}' on machine '{}' to finish. Giving priority to other operations.".format(
         activity, machine['name']))
     poller.result(config.load_timeout(configuration))
