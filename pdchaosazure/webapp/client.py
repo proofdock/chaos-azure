@@ -1,10 +1,10 @@
 from azure.mgmt.web import WebSiteManagementClient
-from chaoslib import Secrets, Configuration
+from chaoslib import Configuration
 
 from pdchaosazure import auth, load_secrets, load_subscription_id
 
 
-def init(experiment_secrets: Secrets, experiment_configuration: Configuration) -> WebSiteManagementClient:
+def init(experiment_configuration: Configuration) -> WebSiteManagementClient:
 
     secrets = load_secrets()
     subscription_id = load_subscription_id(experiment_configuration)

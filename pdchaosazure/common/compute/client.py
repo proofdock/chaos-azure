@@ -1,5 +1,5 @@
 from azure.mgmt.compute import ComputeManagementClient
-from chaoslib import Secrets, Configuration
+from chaoslib import Configuration
 
 from pdchaosazure import load_secrets, load_subscription_id, auth
 
