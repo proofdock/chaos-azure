@@ -4,11 +4,10 @@ from urllib.parse import urlparse
 
 from azure.identity import ClientSecretCredential
 from chaoslib.exceptions import InterruptExecution
-from msrestazure.azure_active_directory import AADMixin
 
 
 @contextlib.contextmanager
-def auth(secrets: Dict) -> AADMixin:
+def auth(secrets: Dict) -> ClientSecretCredential:
     """
     Create Azure authentication client from a provided secrets.
 
