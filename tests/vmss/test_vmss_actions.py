@@ -13,7 +13,7 @@ from tests.vmss.mock_client import MockComputeManagementClient
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 def test_deallocate_vmss(client, fetch_instances, fetch_vmss):
     scale_set = vmss_provider.provide_scale_set()
     scale_sets = [scale_set]
@@ -30,7 +30,7 @@ def test_deallocate_vmss(client, fetch_instances, fetch_vmss):
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 def test_stop_vmss(client, fetch_instances, fetch_vmss):
     scale_set = vmss_provider.provide_scale_set()
     scale_sets = [scale_set]
@@ -46,7 +46,7 @@ def test_stop_vmss(client, fetch_instances, fetch_vmss):
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 def test_restart_vmss(client, fetch_instances, fetch_vmss):
     scale_set = vmss_provider.provide_scale_set()
     scale_sets = [scale_set]
@@ -62,7 +62,7 @@ def test_restart_vmss(client, fetch_instances, fetch_vmss):
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 def test_delete_vmss(client, fetch_instances, fetch_vmss):
     scale_set = vmss_provider.provide_scale_set()
     scale_sets = [scale_set]
@@ -78,7 +78,7 @@ def test_delete_vmss(client, fetch_instances, fetch_vmss):
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_stress_cpu(mocked_command_run, mocked_init_client, mocked_instances, mocked_vmss):
     # arrange mocks
@@ -111,7 +111,7 @@ def test_stress_cpu(mocked_command_run, mocked_init_client, mocked_instances, mo
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_network_latency(mocked_command_run, mocked_init_client, mocked_fetch_instances, mocked_fetch_vmss):
     # arrange mocks
@@ -142,7 +142,7 @@ def test_network_latency(mocked_command_run, mocked_init_client, mocked_fetch_in
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_burn_io(mocked_command_run, mocked_init_client, fetch_instances, fetch_vmss):
     # arrange mocks
@@ -176,7 +176,7 @@ def test_burn_io(mocked_command_run, mocked_init_client, fetch_instances, fetch_
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', autospec=True)
 def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_client, fetch_instances, fetch_vmss):
@@ -211,7 +211,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
 @patch('pdchaosazure.vmss.actions.fetch_instances', autospec=True)
-@patch('pdchaosazure.vmss.actions.init_client', autospec=True)
+@patch('pdchaosazure.vmss.actions.client.init', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'prepare_path', autospec=True)
 @patch.object(pdchaosazure.common.compute.command, 'run', side_effect=FailedActivity("Activity monkey has failed"))
 def test_unhappily_fill_disk(mocked_command_run, mocked_command_prepare_path,

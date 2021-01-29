@@ -7,7 +7,7 @@ from tests.vmss.mock_client import MockComputeManagementClient
 
 @patch('pdchaosazure.vmss.probes.fetch_all_vmss_instances', autospec=True)
 @patch('pdchaosazure.vmss.probes.fetch_vmss', autospec=True)
-@patch('pdchaosazure.vmss.probes.init_client', autospec=True)
+@patch('pdchaosazure.vmss.probes.client.init', autospec=True)
 def test_count_instances(mocked_client, mocked_fetch_vmss, mocked_all_vmss_instances):
 
     # Arrange
@@ -23,7 +23,7 @@ def test_count_instances(mocked_client, mocked_fetch_vmss, mocked_all_vmss_insta
 
 @patch('pdchaosazure.vmss.probes.fetch_all_vmss_instances', autospec=True)
 @patch('pdchaosazure.vmss.probes.fetch_vmss', autospec=True)
-@patch('pdchaosazure.vmss.probes.init_client', autospec=True)
+@patch('pdchaosazure.vmss.probes.client.init', autospec=True)
 def test_count_instances_for_two_sets(mocked_client, mocked_fetch_vmss, mocked_all_vmss_instances):
 
     # Arrange
