@@ -2,7 +2,7 @@ import io
 import json
 import os
 
-from chaoslib.types import Configuration, Secrets
+from chaoslib.types import Configuration
 from logzero import logger
 from msrestazure import azure_cloud
 
