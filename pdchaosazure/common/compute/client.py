@@ -4,7 +4,7 @@ from chaoslib import Secrets, Configuration
 from pdchaosazure import load_secrets, load_subscription_id, auth
 
 
-def init(experiment_secrets: Secrets, experiment_configuration: Configuration) -> ComputeManagementClient:
+def init(experiment_configuration: Configuration) -> ComputeManagementClient:
     secrets = load_secrets()
     subscription_id = load_subscription_id(experiment_configuration)
 

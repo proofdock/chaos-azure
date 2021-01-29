@@ -38,7 +38,7 @@ def delete(vmss_filter: str = None,
     logger.debug(
         "Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, vmss_filter))
 
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
@@ -89,7 +89,7 @@ def restart(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
             restart.__name__, configuration, vmss_filter, instance_filter))
 
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
@@ -140,7 +140,7 @@ def stop(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
             stop.__name__, configuration, vmss_filter, instance_filter))
 
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
@@ -191,7 +191,7 @@ def deallocate(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}'".format(
             deallocate.__name__, configuration, vmss_filter, instance_filter))
 
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
@@ -252,7 +252,7 @@ def stress_cpu(vmss_filter: str = None,
         operation_name, configuration, vmss_filter, instance_filter, duration))
 
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
 
     vmss_records = Records()
 
@@ -312,7 +312,7 @@ def burn_io(vmss_filter: str = None,
         "Starting {}: configuration='{}', vmss_filter='{}', instance_filter='{}', duration='{}',".format(
             operation_name, configuration, vmss_filter, instance_filter, duration))
 
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
     vmss_records = Records()
 
@@ -380,7 +380,7 @@ def fill_disk(vmss_filter: str = None,
             operation_name, configuration, vmss_filter, instance_filter, duration, size, path))
 
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
 
     vmss_records = Records()
 
@@ -453,7 +453,7 @@ def network_latency(vmss_filter: str = None,
             operation_name, configuration, filter, duration, delay, jitter, network_interface))
 
     vmss_list = fetch_vmss(vmss_filter, configuration, secrets)
-    clnt = client.init(secrets, configuration)
+    clnt = client.init(configuration)
 
     vmss_records = Records()
 
