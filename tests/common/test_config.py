@@ -21,7 +21,6 @@ def test_load_secrets_from_credential_file(monkeypatch):
 
 def test_load_subscription_from_credential_file(monkeypatch):
     # arrange
-    experiment_configuration = None
     monkeypatch.setenv(
         "AZURE_AUTH_LOCATION",
         os.path.join(settings_dir, 'credentials.json'))
