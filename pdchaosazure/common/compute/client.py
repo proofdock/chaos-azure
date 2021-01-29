@@ -5,7 +5,7 @@ from pdchaosazure import load_secrets, load_subscription_id, auth
 
 
 def init(experiment_secrets: Secrets, experiment_configuration: Configuration) -> ComputeManagementClient:
-    secrets = load_secrets(experiment_secrets)
+    secrets = load_secrets()
     subscription_id = load_subscription_id(experiment_configuration)
 
     with auth(secrets) as credentials:

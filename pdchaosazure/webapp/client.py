@@ -6,7 +6,7 @@ from pdchaosazure import auth, load_secrets, load_subscription_id
 
 def init(experiment_secrets: Secrets, experiment_configuration: Configuration) -> WebSiteManagementClient:
 
-    secrets = load_secrets(experiment_secrets)
+    secrets = load_secrets()
     subscription_id = load_subscription_id(experiment_configuration)
 
     with auth(secrets) as authentication:

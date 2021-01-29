@@ -4,7 +4,7 @@ from logzero import logger
 
 __all__ = ["count_instances"]
 
-from pdchaosazure.common.compute import init_client
+from pdchaosazure.common.compute import client
 from pdchaosazure.vmss.fetcher import fetch_vmss, fetch_all_vmss_instances
 
 
@@ -23,10 +23,10 @@ def count_instances(filter: str = None,
         "Starting {}: configuration='{}', filter='{}'".format(count_instances.__name__, configuration, filter))
 
     result = []
-    client = init_client(secrets, configuration)
+    clnt = client.init(secrets, configuration)
     vmss_list = fetch_vmss(filter, configuration, secrets)
     for vmss in vmss_list:
-        instances = fetch_all_vmss_instances(vmss, client)
+        instances = fetch_all_vmss_instances(vmss, clnt)
         result.extend(instances)
 
     return len(result)

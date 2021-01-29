@@ -7,7 +7,7 @@ from pdchaosazure.common.config import load_subscription_id
 
 
 def init(experiment_secrets: Secrets, experiment_configuration: Configuration) -> MonitorManagementClient:
-    secrets = load_secrets(experiment_secrets)
+    secrets = load_secrets()
     subscription_id = load_subscription_id(experiment_configuration)
 
     with auth(secrets) as credentials:

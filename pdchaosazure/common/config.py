@@ -7,10 +7,9 @@ from logzero import logger
 from msrestazure import azure_cloud
 
 
-def load_secrets(experiment_secrets: Secrets):
+def load_secrets():
     """Load secrets from experiments or azure credential file.
 
-    :param experiment_secrets: Secrets provided in experiment file
     :returns: a secret object
 
     Load secrets from multiple sources that can contain different format

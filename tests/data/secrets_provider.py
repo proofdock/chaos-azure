@@ -1,4 +1,15 @@
+from msrestazure import azure_cloud
+
 from pdchaosazure.common import cloud
+
+
+def auth_file():
+    return {
+        "clientId": "AZURE_CLIENT_ID",
+        "clientSecret": "AZURE_CLIENT_SECRET",
+        "tenantId": "AZURE_TENANT_ID",
+        "resourceManagerEndpointUrl": "https://management.azure.com/"
+    }
 
 
 def provide_secrets_via_service_principal():
@@ -57,4 +68,6 @@ def provide_violating_secrets():
     return {
         "client_id": "***",
         "tenant_id": "***",
+        "client_secret": "***",
+        "cloud": azure_cloud.AZURE_PUBLIC_CLOUD
     }
