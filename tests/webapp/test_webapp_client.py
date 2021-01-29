@@ -15,4 +15,3 @@ def test_init(auth, load):
 
     assert clnt
     assert clnt._config.subscription_id == "AZURE_SUBSCRIPTION_ID"
-
