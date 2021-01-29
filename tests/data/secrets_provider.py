@@ -8,6 +8,7 @@ def auth_file():
         "clientId": "AZURE_CLIENT_ID",
         "clientSecret": "AZURE_CLIENT_SECRET",
         "tenantId": "AZURE_TENANT_ID",
+        "subscriptionId": "AZURE_SUBSCRIPTION_ID",
         "resourceManagerEndpointUrl": "https://management.azure.com/"
     }
 

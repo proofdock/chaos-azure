@@ -27,7 +27,7 @@ def is_alert_healthy(
         "Starting {}: resource_group='{}', alert_rule='{}', configuration='{}'".format(
             is_alert_healthy.__name__, resource_group, alert_rule, configuration))
 
-    clnt = client.init(secrets, configuration)
+    clnt = client.init()
     collection = clnt.metric_alerts_status.list(resource_group_name=resource_group, rule_name=alert_rule)
     for status in collection.value:
         status = MetricAlertStatus(status)

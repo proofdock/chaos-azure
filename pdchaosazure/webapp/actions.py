@@ -26,7 +26,7 @@ def stop(filter: str = None,
     """
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop.__name__, configuration, filter))
 
-    clnt = client.init(configuration)
+    clnt = client.init()
     webapps = fetch_webapps(filter, configuration, secrets)
     webapps_records = Records()
 
@@ -55,7 +55,7 @@ def restart(filter: str = None,
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(restart.__name__, configuration, filter))
 
     webapps = fetch_webapps(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
     webapps_records = Records()
 
     for webapp in webapps:
@@ -85,7 +85,7 @@ def delete(filter: str = None,
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, filter))
 
     webapps = fetch_webapps(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
     webapps_records = Records()
 
     for webapp in webapps:

@@ -23,7 +23,7 @@ def count_instances(filter: str = None,
         "Starting {}: configuration='{}', filter='{}'".format(count_instances.__name__, configuration, filter))
 
     result = []
-    clnt = client.init(configuration)
+    clnt = client.init()
     vmss_list = fetch_vmss(filter, configuration, secrets)
     for vmss in vmss_list:
         instances = fetch_all_vmss_instances(vmss, clnt)

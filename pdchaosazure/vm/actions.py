@@ -34,7 +34,7 @@ def delete(filter: str = None,
         "Starting {}: configuration='{}', filter='{}'".format(delete.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
     machine_records = Records()
 
     futures = []
@@ -71,7 +71,7 @@ def stop(filter: str = None,
     logger.debug("Starting {}: configuration='{}', filter='{}'".format(stop.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
 
     machine_records = Records()
 
@@ -110,7 +110,7 @@ def restart(filter: str = None,
         restart.__name__, configuration, filter))
 
     machines = fetch_machines(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
     machine_records = Records()
 
     futures = []
@@ -156,7 +156,7 @@ def stress_cpu(filter: str = None,
             operation_name, configuration, filter, duration))
 
     machines = fetch_machines(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
 
     machine_records = Records()
     futures = []
@@ -206,7 +206,7 @@ def fill_disk(filter: str = None,
         fill_disk.__name__, configuration, filter, duration, size, path))
 
     machines = fetch_machines(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
 
     machine_records = Records()
 
@@ -267,7 +267,7 @@ def network_latency(filter: str = None,
             operation_name, configuration, filter, duration, delay, jitter, network_interface))
 
     machines = fetch_machines(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
 
     machine_records = Records()
 
@@ -318,7 +318,7 @@ def burn_io(filter: str = None,
             burn_io.__name__, configuration, filter, duration))
 
     machines = fetch_machines(filter, configuration, secrets)
-    clnt = client.init(configuration)
+    clnt = client.init()
 
     machine_records = Records()
 

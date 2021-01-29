@@ -80,7 +80,7 @@ def load_timeout(experiment_configuration: Configuration) -> int:
     return result
 
 
-def load_subscription_id(experiment_configuration: Configuration) -> str:
+def load_subscription_id() -> str:
     # lookup in Azure auth file
     credentials = _load_credentials_from_auth_file()
     if credentials:

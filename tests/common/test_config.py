@@ -27,7 +27,7 @@ def test_load_subscription_from_credential_file(monkeypatch):
         os.path.join(settings_dir, 'credentials.json'))
 
     # act
-    subscription_id = config.load_subscription_id(experiment_configuration)
+    subscription_id = config.load_subscription_id()
 
     # assert
     assert subscription_id == "AZURE_SUBSCRIPTION_ID"

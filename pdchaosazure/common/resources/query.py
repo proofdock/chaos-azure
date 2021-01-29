@@ -7,7 +7,7 @@ def create_request(
         resource_type: str, user_query: str, experiment_configuration: Configuration) -> QueryRequest:
 
     prepared_query = __prepare(resource_type, user_query)
-    subscription_id = load_subscription_id(experiment_configuration)
+    subscription_id = load_subscription_id()
 
     result = QueryRequest(
         query=prepared_query,
