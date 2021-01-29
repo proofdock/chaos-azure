@@ -24,8 +24,8 @@ def is_alert_healthy(
         Name of the alert rule for which check will be performed.
     """
     logger.debug(
-        "Starting {}: resource_group='{}', alert_rule='{}', configuration='{}'"
-            .format(is_alert_healthy.__name__, resource_group, alert_rule, configuration))
+        "Starting {}: resource_group='{}', alert_rule='{}', configuration='{}'".format(
+            is_alert_healthy.__name__, resource_group, alert_rule, configuration))
 
     clnt = client.init(secrets, configuration)
     collection = clnt.metric_alerts_status.list(resource_group_name=resource_group, rule_name=alert_rule)
