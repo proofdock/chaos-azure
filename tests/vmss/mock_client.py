@@ -4,16 +4,16 @@ class MockLROPoller(object):
 
 
 class MockVirtualMachineScaleSetVMsOperations(object):
-    def power_off(self, resource_group_name, scale_set_name, instance_id):
+    def begin_power_off(self, resource_group_name, scale_set_name, instance_id):
         return MockLROPoller()
 
-    def delete(self, resource_group_name, scale_set_name, instance_id):
+    def begin_delete(self, resource_group_name, scale_set_name, instance_id):
         return MockLROPoller()
 
-    def restart(self, resource_group_name, scale_set_name, instance_id):
+    def begin_restart(self, resource_group_name, scale_set_name, instance_id):
         return MockLROPoller()
 
-    def deallocate(self, resource_group_name, scale_set_name, instance_id):
+    def begin_deallocate(self, resource_group_name, scale_set_name, instance_id):
         return MockLROPoller()
 
 

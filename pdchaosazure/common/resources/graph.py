@@ -1,7 +1,6 @@
-from datetime import datetime
 from typing import List
 
-from azure.mgmt.resourcegraph.models import ErrorResponseException
+from azure.core.exceptions import HttpResponseError
 from chaoslib.exceptions import InterruptExecution, FailedActivity
 from chaoslib.types import Secrets, Configuration
 
@@ -17,15 +16,11 @@ def fetch_resources(user_query: str, resource_type: str,
     try:
         client = init_client(secrets)
         resources = client.resources(query_request)
-    except ErrorResponseException as e:
-        msg = e.inner_exception.error.code
-        if e.inner_exception.error.details:
-            for d in e.inner_exception.error.details:
-                msg += ": " + str(d)
-        raise InterruptExecution(msg)
+    except HttpResponseError as e:
+        raise InterruptExecution(e.message)
 
     # prepare results
-    results = __to_dicts(resources.data, client.api_version)
+    results = __to_dicts(resources.data)
 
     if not results:
         raise FailedActivity("Could not find resources of type '{}' and filter '{}'".format(resource_type, user_query))
@@ -33,22 +28,13 @@ def fetch_resources(user_query: str, resource_type: str,
     return results
 
 
-def __to_dicts(table, version) -> List[dict]:
+def __to_dicts(table) -> List[dict]:
     results = []
-    version_date = datetime.strptime(version, '%Y-%m-%d').date()
 
-    if version_date >= datetime.strptime('2019-04-01', '%Y-%m-%d').date():
-        for row in table['rows']:
-            result = {}
-            for col_index in range(len(table['columns'])):
-                result[table['columns'][col_index]['name']] = row[col_index]
-            results.append(result)
-
-    else:
-        for row in table.rows:
-            result = {}
-            for col_index in range(len(table.columns)):
-                result[table.columns[col_index].name] = row[col_index]
-            results.append(result)
+    for row in table['rows']:
+        result = {}
+        for col_index in range(len(table['columns'])):
+            result[table['columns'][col_index]['name']] = row[col_index]
+        results.append(result)
 
     return results

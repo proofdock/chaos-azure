@@ -5,7 +5,7 @@ from tests.data import config_provider, secrets_provider, webapp_provider
 
 
 @patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
-@patch('pdchaosazure.webapp.actions.init_client', autospec=True)
+@patch('pdchaosazure.webapp.actions.client.init', autospec=True)
 def test_happily_stop_webapp(init, fetch):
     config = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_public()
@@ -24,7 +24,7 @@ def test_happily_stop_webapp(init, fetch):
 
 
 @patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
-@patch('pdchaosazure.webapp.actions.init_client', autospec=True)
+@patch('pdchaosazure.webapp.actions.client.init', autospec=True)
 def test_happily_restart_webapp(init, fetch):
     config = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_public()
@@ -43,7 +43,7 @@ def test_happily_restart_webapp(init, fetch):
 
 
 @patch('pdchaosazure.webapp.actions.fetch_webapps', autospec=True)
-@patch('pdchaosazure.webapp.actions.init_client', autospec=True)
+@patch('pdchaosazure.webapp.actions.client.init', autospec=True)
 def test_happily_delete_webapp(init, fetch):
     webapp = webapp_provider.default()
     config = config_provider.provide_default_config()
