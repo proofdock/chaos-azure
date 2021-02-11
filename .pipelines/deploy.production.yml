@@ -31,7 +31,3 @@ stages:
                 - script: bump2version patch
                   displayName: 'Bump patch version after release'
                 - template: templates/deploy.commit.yml
-                - task: PublishPipelineArtifact@1
-                  inputs:
-                    targetPath: "dist"
-                    artifactName: "chaos-azure-src"
