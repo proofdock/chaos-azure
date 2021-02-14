@@ -154,8 +154,7 @@ def test_stress_cpu(mocked_command_run, mocked_init_client, fetch):
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, duration + timeout, parameters=ANY, client=mocked_client)
+    mocked_command_run.assert_called_with(machine['resourceGroup'], machine, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
@@ -184,8 +183,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)
+    mocked_command_run.assert_called_with(machine['resourceGroup'], machine, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
@@ -213,8 +211,7 @@ def test_network_latency(mocked_command_run, mocked_init_client, fetch):
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)
+    mocked_command_run.assert_called_with(machine['resourceGroup'], machine, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vm.actions.fetch_machines', autospec=True)
@@ -240,5 +237,4 @@ def test_burn_io(mocked_command_run, mocked_init_client, fetch):
 
     # assert
     fetch.assert_called_with("where name=='some_linux_machine'", configuration, secrets)
-    mocked_command_run.assert_called_with(
-        machine['resourceGroup'], machine, timeout, parameters=ANY, client=mocked_client)
+    mocked_command_run.assert_called_with(machine['resourceGroup'], machine, parameters=ANY, client=mocked_client)

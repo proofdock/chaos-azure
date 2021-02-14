@@ -269,8 +269,7 @@ def stress_cpu(vmss_filter: str = None,
                 # collect future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
-                        configuration, clnt))
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, parameters, clnt))
 
             # wait for future results
             for future in concurrent.futures.as_completed(futures):
@@ -330,8 +329,7 @@ def burn_io(vmss_filter: str = None,
                 # collect future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
-                        configuration, clnt))
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, parameters, clnt))
 
             # wait for the results
             for future in concurrent.futures.as_completed(futures):
@@ -399,8 +397,7 @@ def fill_disk(vmss_filter: str = None,
                 # collect the future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration, parameters,
-                        configuration, clnt))
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, parameters, clnt))
 
             # wait for the results
             for future in concurrent.futures.as_completed(futures):
@@ -472,8 +469,7 @@ def network_latency(vmss_filter: str = None,
                 # collect the future results
                 futures.append(
                     executor.submit(
-                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, duration,
-                        parameters, configuration, clnt))
+                        __long_poll_command, operation_name, vmss['resourceGroup'], instance, parameters, clnt))
 
             # wait for the results
             for future in concurrent.futures.as_completed(futures):
@@ -498,11 +494,10 @@ def __long_poll(activity, instance, poller, configuration):
     return instance
 
 
-def __long_poll_command(activity, group, instance, duration, parameters, configuration, client):
+def __long_poll_command(activity, group, instance, parameters, client):
     logger.debug("Waiting for operation '{}' on instance '{}' to finish. Giving priority to other operations.".format(
         activity, instance['name']))
-    timeout = config.load_timeout(configuration) + duration
-    command.run(group, instance, timeout, parameters, client)
+    command.run(group, instance, parameters, client)
     logger.debug("Finished operation '{}' on instance '{}'.".format(activity, instance['name']))
 
     return instance
