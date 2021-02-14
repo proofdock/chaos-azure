@@ -1,8 +1,8 @@
 from unittest.mock import ANY, MagicMock, patch
 
-import pdchaosazure
 from azure.mgmt.compute import ComputeManagementClient
-from pdchaosazure.common import config
+
+import pdchaosazure
 from pdchaosazure.vm.actions import (burn_io, delete, fill_disk,
                                      network_latency, restart, stop,
                                      stress_cpu)
