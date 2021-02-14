@@ -145,7 +145,6 @@ def test_stress_cpu(mocked_command_run, mocked_init_client, fetch):
     configuration = config_provider.provide_default_config()
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
-    timeout = config.load_timeout(configuration)
     duration = 60
 
     # act
@@ -175,7 +174,6 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     duration = 60
-    timeout = config.load_timeout(configuration) + duration
 
     # act
     fill_disk(filter="where name=='some_linux_machine'", duration=duration, size=1000, path='/root/burn/hard',
@@ -202,7 +200,6 @@ def test_network_latency(mocked_command_run, mocked_init_client, fetch):
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     duration = 60
-    timeout = config.load_timeout(configuration) + duration
 
     # act
     network_latency(
@@ -230,7 +227,6 @@ def test_burn_io(mocked_command_run, mocked_init_client, fetch):
     mocked_init_client.return_value = mocked_client
 
     duration = 60
-    timeout = config.load_timeout(configuration) + duration
 
     # act
     burn_io(filter="where name=='some_linux_machine'", duration=duration, configuration=configuration, secrets=secrets)

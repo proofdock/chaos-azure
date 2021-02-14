@@ -4,7 +4,6 @@ import pytest
 from chaoslib.exceptions import FailedActivity
 
 import pdchaosazure
-from pdchaosazure.common import config
 from pdchaosazure.vmss.actions import delete, restart, stop, \
     deallocate, network_latency, burn_io, fill_disk, stress_cpu
 from tests.data import config_provider, secrets_provider, vmss_provider
