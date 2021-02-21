@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from types import SimpleNamespace
 
 from azure.mgmt.monitor.models import MetricAlertStatus, MetricAlertStatusProperties
 from chaoslib.types import Configuration, Secrets
