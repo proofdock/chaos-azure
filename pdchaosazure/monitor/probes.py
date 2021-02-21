@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from types import SimpleNamespace
+
 from azure.mgmt.monitor.models import MetricAlertStatus, MetricAlertStatusProperties
 from chaoslib.types import Configuration, Secrets
 from logzero import logger
@@ -30,8 +32,8 @@ def is_alert_healthy(
     clnt = client.init()
     collection = clnt.metric_alerts_status.list(resource_group_name=resource_group, rule_name=alert_rule)
     for status in collection.value:
-        status = MetricAlertStatus(status)
-        properties = MetricAlertStatusProperties(status.properties)
+        status = MetricAlertStatus(**status)
+        properties = MetricAlertStatusProperties(**status.properties)
         if str(properties.status).lower() != 'healthy':
             return False
 
