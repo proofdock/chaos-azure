@@ -2,7 +2,8 @@ def healthy():
     return {
         "value": [
             {
-                "id": "/subscriptions/00000000-000-0000-0000-000000000000/resourceGroups/rgname/providers/Microsoft.Insights/metricAlerts/metricnamexx",
+                "id": "/subscriptions/00000000-000-0000-0000-000000000000/resourceGroups/rgname/providers/Microsoft"
+                      ".Insights/metricAlerts/metricnamexx",
                 "name": "Y3VycmVudFN0YXR1cw==",
                 "type": "Microsoft.Insights/metricAlerts/status",
                 "properties": {
@@ -19,7 +20,8 @@ def unhealthy():
     return {
         "value": [
             {
-                "id": "/subscriptions/00000000-000-0000-0000-000000000000/resourceGroups/rgname/providers/Microsoft.Insights/metricAlerts/metricnamexx",
+                "id": "/subscriptions/00000000-000-0000-0000-000000000000/resourceGroups/rgname/providers/Microsoft"
+                      ".Insights/metricAlerts/metricnamexx",
                 "name": "Y3VycmVudFN0YXR1cw==",
                 "type": "Microsoft.Insights/metricAlerts/status",
                 "properties": {

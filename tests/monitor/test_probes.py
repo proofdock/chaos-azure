@@ -45,7 +45,7 @@ def test_is_alert_healthy_is_happy(client):
 
 
 @patch('pdchaosazure.monitor.probes.client.init', autospec=True)
-def test_is_alert_healthy_is_happy(client):
+def test_is_alert_healthy_is_unhappy(client):
     # arrange
     magic_client = MagicMock(spec=MonitorManagementClient)
     client.return_value = magic_client
