@@ -4,7 +4,6 @@ import pytest
 from chaoslib.exceptions import FailedActivity
 
 import pdchaosazure
-from pdchaosazure.common import config
 from pdchaosazure.vmss.actions import delete, restart, stop, \
     deallocate, network_latency, burn_io, fill_disk, stress_cpu
 from tests.data import config_provider, secrets_provider, vmss_provider
@@ -93,7 +92,6 @@ def test_stress_cpu(mocked_command_run, mocked_init_client, mocked_instances, mo
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     duration = 60
-    timeout = config.load_timeout(configuration) + duration
 
     client = MockComputeManagementClient()
     mocked_init_client.return_value = client
@@ -106,7 +104,7 @@ def test_stress_cpu(mocked_command_run, mocked_init_client, mocked_instances, mo
     # assert
     mocked_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     mocked_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
-    mocked_command_run.assert_called_with(scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=client)
+    mocked_command_run.assert_called_with(scale_set['resourceGroup'], instance, parameters=ANY, client=client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
@@ -124,7 +122,6 @@ def test_network_latency(mocked_command_run, mocked_init_client, mocked_fetch_in
     secrets = secrets_provider.provide_secrets_via_service_principal()
 
     duration = 60
-    timeout = config.load_timeout(configuration) + duration
 
     mocked_client = MockComputeManagementClient()
     mocked_init_client.return_value = mocked_client
@@ -136,8 +133,7 @@ def test_network_latency(mocked_command_run, mocked_init_client, mocked_fetch_in
     # assert
     mocked_fetch_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     mocked_fetch_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
-    mocked_command_run.assert_called_with(
-        scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=mocked_client)
+    mocked_command_run.assert_called_with(scale_set['resourceGroup'], instance, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
@@ -160,7 +156,6 @@ def test_burn_io(mocked_command_run, mocked_init_client, fetch_instances, fetch_
     mocked_init_client.return_value = mocked_client
 
     duration = 60
-    timeout = config.load_timeout(configuration) + duration
 
     # act
     burn_io(
@@ -170,8 +165,7 @@ def test_burn_io(mocked_command_run, mocked_init_client, fetch_instances, fetch_
     # assert
     fetch_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     fetch_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
-    mocked_command_run.assert_called_with(
-        scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=mocked_client)
+    mocked_command_run.assert_called_with(scale_set['resourceGroup'], instance, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)
@@ -195,7 +189,6 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_
     mocked_init_client.return_value = mocked_client
 
     duration = 60
-    timeout = config.load_timeout(configuration) + duration
 
     # act
     fill_disk(
@@ -205,8 +198,7 @@ def test_fill_disk(mocked_command_run, mocked_command_prepare_path, mocked_init_
     # assert
     fetch_vmss.assert_called_with("where name=='some_random_instance'", configuration, secrets)
     fetch_instances.assert_called_with(scale_set, None, mocked_init_client.return_value)
-    mocked_command_run.assert_called_with(
-        scale_set['resourceGroup'], instance, timeout, parameters=ANY, client=mocked_client)
+    mocked_command_run.assert_called_with(scale_set['resourceGroup'], instance, parameters=ANY, client=mocked_client)
 
 
 @patch('pdchaosazure.vmss.actions.fetch_vmss', autospec=True)

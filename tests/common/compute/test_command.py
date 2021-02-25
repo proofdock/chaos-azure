@@ -49,22 +49,20 @@ def test_prepare_supported_script_for_windows_machine():
 def test_run():
     # arrange
     machine = machine_provider.default()
-    timeout = 120
     cmd, parameters = command.prepare(machine, "stress_cpu")
     mocked_client = MagicMock(spec=ComputeManagementClient)
 
     # act
-    command.run(machine['resourceGroup'], machine, timeout, parameters, mocked_client)
+    command.run(machine['resourceGroup'], machine, parameters, mocked_client)
 
 
 def test_run_for_unknown_type():
     # arrange
     machine = machine_provider.default()
     machine['type'] = "Microsoft.Compute/unknownType"
-    timeout = 120
 
     # act
     with pytest.raises(InterruptExecution):
         cmd, parameters = command.prepare(machine, "stress_cpu")
         mocked_client = MagicMock(spec=ComputeManagementClient)
-        command.run(machine['resourceGroup'], machine, timeout, parameters, mocked_client)
+        command.run(machine['resourceGroup'], machine, parameters, mocked_client)

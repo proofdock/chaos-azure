@@ -45,7 +45,7 @@ def prepare(compute: dict, script_id: str):
         return command_id, script_content
 
 
-def run(resource_group: str, compute: dict, timeout: int, parameters: dict, client: ComputeManagementClient):
+def run(resource_group: str, compute: dict, parameters: dict, client: ComputeManagementClient):
     compute_type = compute.get('type').lower()
 
     try:
@@ -64,7 +64,7 @@ def run(resource_group: str, compute: dict, timeout: int, parameters: dict, clie
     except HttpResponseError as e:
         raise FailedActivity(e.message)
 
-    result = poller.result(timeout)  # Blocking till executed
+    result = poller.result()  # Blocking till executed
     if result and result.value:
         logger.debug(result.value[0].message)  # stdout/stderr
     else:

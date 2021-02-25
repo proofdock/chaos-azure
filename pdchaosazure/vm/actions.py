@@ -167,8 +167,7 @@ def stress_cpu(filter: str = None,
 
             # collect future results
             futures.append(
-                executor.submit(
-                    __long_poll_command, operation_name, machine, duration, parameters, configuration, clnt))
+                executor.submit(__long_poll_command, operation_name, machine, parameters, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -220,8 +219,7 @@ def fill_disk(filter: str = None,
 
             # collect future results
             futures.append(
-                executor.submit(
-                    __long_poll_command, fill_disk.__name__, machine, duration, parameters, configuration, clnt))
+                executor.submit(__long_poll_command, fill_disk.__name__, machine, parameters, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -282,8 +280,7 @@ def network_latency(filter: str = None,
 
             # collect future results
             futures.append(
-                executor.submit(
-                    __long_poll_command, operation_name, machine, duration, parameters, configuration, clnt))
+                executor.submit(__long_poll_command, operation_name, machine, parameters, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -331,8 +328,7 @@ def burn_io(filter: str = None,
 
             # collect future results
             futures.append(
-                executor.submit(
-                    __long_poll_command, burn_io.__name__, machine, duration, parameters, configuration, clnt))
+                executor.submit(__long_poll_command, burn_io.__name__, machine, parameters, clnt))
 
         # wait for results
         for future in concurrent.futures.as_completed(futures):
@@ -354,11 +350,10 @@ def __long_poll(activity, machine, poller: LROPoller, configuration):
     return machine
 
 
-def __long_poll_command(activity, machine, duration, parameters, configuration, client):
+def __long_poll_command(activity, machine, parameters, client):
     logger.debug("Waiting for operation '{}' on machine '{}' to finish. Giving priority to other operations.".format(
         activity, machine['name']))
-    timeout = config.load_timeout(configuration) + duration
-    command.run(machine['resourceGroup'], machine, timeout, parameters, client)
+    command.run(machine['resourceGroup'], machine, parameters, client)
     logger.debug("Finished operation '{}' on machine '{}'.".format(activity, machine['name']))
 
     return machine
