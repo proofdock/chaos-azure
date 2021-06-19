@@ -30,9 +30,9 @@ def fetch_vmss(vmss_filter, configuration, secrets) -> List[dict]:
 
 def fetch_all_vmss_instances(vmss, client: ComputeManagementClient) -> List[Dict]:
     vmss_instances = []
-    instances = client.virtual_machine_scale_set_vms.list(vmss['resourceGroup'], vmss['name'])
+    instances_iterator = client.virtual_machine_scale_set_vms.list(vmss['resourceGroup'], vmss['name'])
 
-    for instance in instances:
+    for instance in instances_iterator:
         vmss_instances.append(instance)
 
     results = __parse_vmss_instances_result(vmss_instances, vmss)
